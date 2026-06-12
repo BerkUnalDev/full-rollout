@@ -1,6 +1,7 @@
 // src/engine/__tests__/work.test.ts
 import { Rng } from '../rng';
-import { runDevPhase } from '../work';
+import { runDevPhase, runQaPhase } from '../work';
+import { QA_EFFORT_FRACTION, REWORK_FRACTION } from '../constants';
 import { makeState, addMember, addTicket, assignTo } from './helpers';
 
 describe('runDevPhase', () => {
@@ -60,5 +61,55 @@ describe('runDevPhase', () => {
     dev.ticketKey = t.key; // stale pointer to a non-dev-phase ticket
     expect(() => runDevPhase(s, new Rng(1))).not.toThrow();
     expect(dev.ticketKey).toBeNull();
+  });
+});
+
+describe('runQaPhase', () => {
+  it('idle QA pulls the oldest AWAITING_QA ticket and can finish it the same week', () => {
+    const s = makeState();
+    addMember(s, 'QA', 3); // speed 4
+    const t = addTicket(s, { status: 'AWAITING_QA', effortTotal: 4, effort: 0, hiddenBugs: 0 });
+    runQaPhase(s, new Rng(1));
+    // qaEffort = ceil(4 × 0.5) = 2 ≤ speed 4 → resolved immediately, no bugs → QA_COMPLETE
+    expect(t.status).toBe('QA_COMPLETE');
+    expect(t.assigneeId).toBeNull();
+  });
+
+  it('clean tickets always pass (no catch rolls when hiddenBugs = 0)', () => {
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const s = makeState();
+      addMember(s, 'QA', 1);
+      const t = addTicket(s, { status: 'AWAITING_QA', effortTotal: 2, hiddenBugs: 0 });
+      for (let i = 0; i < 5 && t.status !== 'QA_COMPLETE'; i++) runQaPhase(s, new Rng(seed + i));
+      expect(t.status).toBe('QA_COMPLETE');
+    }
+  });
+
+  it('buggy tickets either bounce back with fewer bugs or pass with bugs intact', () => {
+    const s = makeState();
+    addMember(s, 'QA', 5);
+    const t = addTicket(s, { status: 'AWAITING_QA', effortTotal: 8, hiddenBugs: 10 });
+    const rng = new Rng(3);
+    for (let i = 0; i < 10 && (t.status === 'AWAITING_QA' || t.status === 'IN_QA'); i++) runQaPhase(s, rng);
+    if (t.status === 'IN_DEVELOPMENT') {
+      expect(t.hiddenBugs).toBeLessThan(10);
+      expect(t.effort).toBe(Math.max(1, Math.ceil(t.effortTotal * REWORK_FRACTION)));
+      expect(t.phaseEffort).toBe(t.effort);
+    } else {
+      expect(t.status).toBe('QA_COMPLETE');
+      expect(t.hiddenBugs).toBe(10);
+    }
+    // skill 5 catch rate is 0.95 — with 10 bugs, bouncing back is the only realistic outcome
+    expect(t.status).toBe('IN_DEVELOPMENT');
+  });
+
+  it('a QA member only works one ticket per week', () => {
+    const s = makeState();
+    addMember(s, 'QA', 5); // fast
+    const t1 = addTicket(s, { status: 'AWAITING_QA', effortTotal: 2, hiddenBugs: 0 });
+    const t2 = addTicket(s, { status: 'AWAITING_QA', effortTotal: 2, hiddenBugs: 0 });
+    runQaPhase(s, new Rng(1));
+    expect(t1.status).toBe('QA_COMPLETE');
+    expect(t2.status).toBe('AWAITING_QA'); // untouched until next week
   });
 });
