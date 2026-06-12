@@ -62,3 +62,9 @@ export const OPPORTUNITY_BODIES = [
   'The platform wants to feature {game}! Ship a full rollout by {deadline} and player numbers will spike.',
   'A creator collab is lined up for {game}. Get a fresh version fully rolled out by {deadline} to ride the wave.',
 ] as const;
+
+export const NEW_GAME_STORY_TITLES = [
+  'Core gameplay loop',
+  'First 100 levels',
+  'Tutorial & onboarding',
+] as const;

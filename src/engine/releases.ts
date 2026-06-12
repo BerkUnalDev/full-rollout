@@ -16,6 +16,7 @@ export function qaCompleteFor(s: GameState, gameId: string): Ticket[] {
 }
 
 export function computeNextVersion(game: PortfolioGame, included: Ticket[]): string {
+  if (game.version === '0.0.0') return '1.0.0'; // a brand-new game's first release
   const [maj, min, pat] = game.version.split('.').map(Number);
   return included.some((t) => t.type === 'Story')
     ? `${maj}.${min + 1}.0`

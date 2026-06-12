@@ -1,7 +1,11 @@
 // src/engine/actions.ts
 import { Rng } from './rng';
 import { applyFullRollout, applyPullBack, performCut } from './releases';
-import type { GameState, PlanAction, Ticket } from './types';
+import { generateGameName } from './names';
+import { createTicket, effortFor, genId, genStoryConcept, genBugTitle } from './generators';
+import { GENRE_FIT, NEW_GAME_COST } from './constants';
+import { NEW_GAME_STORY_TITLES } from './data';
+import type { GameState, Genre, PlanAction, PortfolioGame, Ticket } from './types';
 
 type Ctx = { s: GameState; rng: Rng };
 type Handlers = {
@@ -73,4 +77,75 @@ handlers.fullRollout = ({ s }, a: { releaseId: string }) => {
 
 handlers.pullBack = ({ s, rng }, a: { releaseId: string }) => {
   applyPullBack(s, rng, a.releaseId);
+};
+
+handlers.hire = ({ s }, a: { candidateId: string }) => {
+  const c = s.market.candidates.find((x) => x.id === a.candidateId);
+  if (!c) throw new Error('No such candidate');
+  if (s.cash < c.signingFee) throw new Error('Not enough cash for the signing fee');
+  s.cash -= c.signingFee;
+  s.pendingDeltas.push({ label: `Signing fee: ${c.name}`, amount: -c.signingFee });
+  s.team.push({ id: c.id, name: c.name, role: c.role, skill: c.skill, salary: c.salary, ticketKey: null });
+  s.market.candidates = s.market.candidates.filter((x) => x.id !== c.id);
+  s.pendingEvents.push(`👋 Hired ${c.name} — ${c.role}, ${'⭐'.repeat(c.skill)}`);
+};
+
+handlers.buyGame = ({ s, rng }, a: { offerId: string }) => {
+  const o = s.market.offers.find((x) => x.id === a.offerId);
+  if (!o) throw new Error('No such offer');
+  if (s.cash < o.price) throw new Error('Not enough cash');
+  s.cash -= o.price;
+  s.pendingDeltas.push({ label: `Acquired ${o.name}`, amount: -o.price });
+  const game: PortfolioGame = {
+    id: genId(s, 'g'), name: o.name, genre: o.genre, players: o.players,
+    rating: o.rating, revenuePerPlayer: o.revenuePerPlayer,
+    version: `${rng.int(1, 3)}.${rng.int(0, 9)}.${rng.int(0, 2)}`,
+    lastRolloutWeek: s.weekIndex, // acquisition resets the staleness clock
+    pendingImpact: { revenuePct: 0, ratingBonus: 0 }, declinedBugs: 0,
+  };
+  s.games.push(game);
+  createTicket(s, {
+    type: 'Bug', gameId: game.id,
+    title: `${game.name} - ${genBugTitle(rng)}`, effort: effortFor(rng, 'Bug'),
+  });
+  for (let i = 0; i < 2; i++) {
+    const { title, tag } = genStoryConcept(rng, game.genre, GENRE_FIT[game.genre]);
+    const revenuePct = Math.round(rng.range(4, 10) * 10) / 10;
+    createTicket(s, {
+      type: 'Story', gameId: game.id, title: `${game.name} - ${title}`,
+      effort: effortFor(rng, 'Story'), tags: [tag],
+      predictedImpact: { revenuePct, ratingBonus: 0.1 },
+      impact: {
+        revenuePct: Math.round(revenuePct * rng.range(0.5, 1.4) * 10) / 10,
+        ratingBonus: 0.1,
+      },
+    });
+  }
+  s.market.offers = s.market.offers.filter((x) => x.id !== o.id);
+  s.pendingEvents.push(`🎉 Acquired ${o.name} for $${o.price.toLocaleString('en-US')}`);
+  s.log.push(`Acquired ${o.name}`);
+};
+
+handlers.startNewGame = ({ s, rng }, a: { genre: Genre }) => {
+  if (s.cash < NEW_GAME_COST) throw new Error('Not enough cash');
+  s.cash -= NEW_GAME_COST;
+  s.pendingDeltas.push({ label: 'New game prototype', amount: -NEW_GAME_COST });
+  const name = generateGameName(rng, s.usedNames);
+  s.usedNames.push(name);
+  const game: PortfolioGame = {
+    id: genId(s, 'g'), name, genre: a.genre, players: 0, rating: 3.0,
+    revenuePerPlayer: 0.012, version: '0.0.0', lastRolloutWeek: s.weekIndex,
+    pendingImpact: { revenuePct: 0, ratingBonus: 0 }, declinedBugs: 0,
+  };
+  s.games.push(game);
+  for (const title of NEW_GAME_STORY_TITLES) {
+    createTicket(s, {
+      type: 'Story', gameId: game.id, title: `${name} - ${title}`,
+      effort: rng.int(5, 8),
+      predictedImpact: { revenuePct: 3, ratingBonus: 0.1 },
+      impact: { revenuePct: Math.round(rng.range(2, 5) * 10) / 10, ratingBonus: 0.1 },
+    });
+  }
+  s.pendingEvents.push(`🌱 Started a new ${a.genre} game: ${name}`);
+  s.log.push(`Started ${name} (${a.genre})`);
 };
