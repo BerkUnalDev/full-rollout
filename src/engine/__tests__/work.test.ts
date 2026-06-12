@@ -68,7 +68,7 @@ describe('runQaPhase', () => {
   it('idle QA pulls the oldest AWAITING_QA ticket and can finish it the same week', () => {
     const s = makeState();
     addMember(s, 'QA', 3); // speed 4
-    const t = addTicket(s, { status: 'AWAITING_QA', effortTotal: 4, effort: 0, hiddenBugs: 0 });
+    const t = addTicket(s, { status: 'AWAITING_QA', effortTotal: 4, effort: 0, phaseEffort: 4, hiddenBugs: 0 });
     runQaPhase(s, new Rng(1));
     // qaEffort = ceil(4 × 0.5) = 2 ≤ speed 4 → resolved immediately, no bugs → QA_COMPLETE
     expect(t.status).toBe('QA_COMPLETE');
@@ -95,9 +95,6 @@ describe('runQaPhase', () => {
       expect(t.hiddenBugs).toBeLessThan(10);
       expect(t.effort).toBe(Math.max(1, Math.ceil(t.effortTotal * REWORK_FRACTION)));
       expect(t.phaseEffort).toBe(t.effort);
-    } else {
-      expect(t.status).toBe('QA_COMPLETE');
-      expect(t.hiddenBugs).toBe(10);
     }
     // skill 5 catch rate is 0.95 — with 10 bugs, bouncing back is the only realistic outcome
     expect(t.status).toBe('IN_DEVELOPMENT');

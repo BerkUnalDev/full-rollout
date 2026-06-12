@@ -54,6 +54,10 @@ export function runQaPhase(s: GameState, rng: Rng): void {
     qa.ticketKey = null;
     t.assigneeId = null;
     if (caught > 0) {
+      // Rework re-injects bugs via runDevPhase (phaseEffort = rework). With
+      // STORY_EFFORT ≤ 8, equilibrium hiddenBugs ≈ reworkBugs/catchRate ≤ ~1.4
+      // at worst skills, so the dev↔QA loop converges. If effortTotal ever
+      // exceeds ~25, this bound breaks — revisit then.
       t.hiddenBugs -= caught;
       const rework = Math.max(1, Math.ceil(t.effortTotal * REWORK_FRACTION));
       t.effort = rework;
