@@ -82,7 +82,8 @@ export function genBugTitle(rng: Rng): string {
 }
 
 export function genCandidate(s: GameState, rng: Rng): HireCandidate {
-  const role: Role = rng.next() < 0.45 ? 'Developer' : rng.next() < 0.55 ? 'QA' : 'Release Manager';
+  const roleRoll = rng.next();
+  const role: Role = roleRoll < 0.45 ? 'Developer' : roleRoll < 0.75 ? 'QA' : 'Release Manager';
   const skill = rng.int(1, 5);
   const base = SALARY_BY_SKILL[role][skill - 1];
   const salary = Math.round((base * rng.range(0.9, 1.1)) / 50) * 50;

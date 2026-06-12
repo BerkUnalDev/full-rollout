@@ -12,6 +12,7 @@ describe('newGame', () => {
     expect(s.cash).toBe(STARTING_CASH);
     expect(s.weekIndex).toBe(0);
     expect(s.status).toBe('playing');
+    expect(s.rngState).not.toBe(s.seed); // rng actually advanced and was written back
     // 2 devs, 1 QA, 1 RM
     const roles = s.team.map((m) => m.role).sort();
     expect(roles).toEqual(['Developer', 'Developer', 'QA', 'Release Manager'].sort());

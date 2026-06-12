@@ -2,13 +2,13 @@
 import { Rng } from './rng';
 import { DEFAULT_SEED, GENRE_FIT, SCHEMA_VERSION, STARTING_CASH } from './constants';
 import { generateGameName, generatePersonName } from './names';
-import { createTicket, effortFor, genStoryConcept, genBugTitle, refreshMarket } from './generators';
+import { createTicket, effortFor, genStoryConcept, genBugTitle, refreshMarket, genId } from './generators';
 import { generateInboxItem } from './inbox';
 import type { GameState, PortfolioGame, Role } from './types';
 
 function member(s: GameState, rng: Rng, role: Role, skill: number, salary: number) {
   s.team.push({
-    id: `m${s.nextId++}`,
+    id: genId(s, 'm'),
     name: generatePersonName(rng),
     role,
     skill,
@@ -52,14 +52,14 @@ export function newGame(seed: number = DEFAULT_SEED): GameState {
   const nameA = generateGameName(rng, s.usedNames);
   s.usedNames.push(nameA);
   const aging: PortfolioGame = {
-    id: `g${s.nextId++}`, name: nameA, genre: rng.pick(['Puzzle', 'Arcade'] as const),
+    id: genId(s, 'g'), name: nameA, genre: rng.pick(['Puzzle', 'Arcade'] as const),
     players: 220_000, rating: 4.0, revenuePerPlayer: 0.016, version: '2.4.1',
     lastRolloutWeek: -8, pendingImpact: { revenuePct: 0, ratingBonus: 0 }, declinedBugs: 0,
   };
   const nameB = generateGameName(rng, s.usedNames);
   s.usedNames.push(nameB);
   const healthy: PortfolioGame = {
-    id: `g${s.nextId++}`, name: nameB, genre: rng.pick(['Merge', 'Word'] as const),
+    id: genId(s, 'g'), name: nameB, genre: rng.pick(['Merge', 'Word'] as const),
     players: 90_000, rating: 4.4, revenuePerPlayer: 0.018, version: '1.6.0',
     lastRolloutWeek: -2, pendingImpact: { revenuePct: 0, ratingBonus: 0 }, declinedBugs: 0,
   };
