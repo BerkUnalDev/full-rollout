@@ -34,7 +34,7 @@ export function GameOverScreen() {
           <button
             className="btn blue"
             onClick={() => {
-              navigator.clipboard.writeText(shareText).then(() => setCopied(true));
+              navigator.clipboard.writeText(shareText).then(() => setCopied(true)).catch(() => {});
             }}
           >
             {copied ? 'Copied!' : '📋 Copy score'}

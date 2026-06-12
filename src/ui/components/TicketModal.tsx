@@ -27,7 +27,6 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
         )}
         <p>
           Effort: {t.phaseEffort - t.effort}/{t.phaseEffort} points done
-          {t.hiddenBugs > 0 ? ' · ' : ''}
           {/* hidden bugs stay hidden — never render t.hiddenBugs! */}
         </p>
         {assignable && (
