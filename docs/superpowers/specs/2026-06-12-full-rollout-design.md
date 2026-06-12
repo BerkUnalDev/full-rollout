@@ -28,7 +28,7 @@ Each week has two phases:
 
 **End Week** (single button) → resolution, fully automatic and deterministic given the RNG seed:
 1. Assigned devs progress their tickets; finished dev work moves to AWAITING QA (hidden bugs injected based on dev skill).
-2. Idle QA members pull the oldest AWAITING QA ticket into IN QA and work it; on completion they either catch bugs (ticket returns to IN DEVELOPMENT with rework effort) or pass it to QA COMPLETE (missed bugs stay hidden).
+2. Idle QA members pull the oldest AWAITING QA ticket into IN QA and work it; on completion they either catch bugs (ticket returns to IN DEVELOPMENT with rework effort; caught bugs are removed, uncaught ones stay hidden and roll again on the next QA pass) or pass it to QA COMPLETE (missed bugs stay hidden).
 3. Release Managers process releases cut this week → ship to **10% soft launch**; contained tickets move to DONE.
 4. Releases soft-launched last week receive **metrics** (visible from now on; rollout decision unlocked).
 5. Live games produce revenue; stale games decay; salaries are paid.
@@ -60,7 +60,7 @@ Each week has two phases:
 ## 4. Release → metrics → rollout (the heart)
 
 1. **Cut release** (plan phase; needs a free RM and ≥1 QA COMPLETE ticket for that game; max one in-flight release per game). Creates the Release Ticket; that week's resolution ships it to **10% soft launch**.
-2. **Next week**, metrics arrive, derived from hidden release quality + noise: **D1/D7 retention, crash rate, rating impact, ARPDAU impact**. Release quality is computed from: average dev skill of contained work, feature–genre fit, **missed bugs** (big penalty), and noise.
+2. **Next week**, metrics arrive, derived from hidden release quality + noise: **D1/D7 retention, crash rate, rating impact, ARPDAU impact**. Release quality is computed from: average dev skill of contained work, feature–genre fit, **missed bugs** (big penalty), and noise. A soft launch has **no revenue or game-stat effect** — effects apply only on full rollout.
 3. Player decides (no deadline, but the game keeps decaying while you wait):
    - **Full Rollout** — effects apply permanently: good quality → installs growth, rating/ARPDAU up; bad quality → rating drop, installs decline. Triggered from the Releases screen.
    - **Pull Back & Fix** — release is withdrawn; missed bugs become visible Bug tickets in the backlog; the stories' feature impact returns to the game's pending pool, so a future release re-carries it (fixed = better quality next time).
@@ -70,7 +70,7 @@ Each week has two phases:
 
 - **Start:** 2 games — one aging former hit (large installs, already decaying), one mid-size healthy title.
 - **Game offers:** 1–2 per week on the Market screen: fictional name, genre, installs, rating, ARPDAU, price ≈ 25× its current weekly revenue (±30% noise). Buying adds the game as a component with 2–3 starter tickets (1 Bug + 2 Stories).
-- **Start New Game:** pick a genre (Puzzle, Merge, Word, Arcade, Card, Simulation) → name generated → joins portfolio with 0 installs and a 3-Story `1.0.0` chain; first full rollout seeds installs proportional to release quality. Costs a small fixed amount.
+- **Start New Game:** pick a genre (Puzzle, Merge, Word, Arcade, Card, Simulation) → name generated → joins portfolio with 0 installs and a 3-Story `1.0.0` chain; first full rollout seeds installs proportional to release quality. Costs a fixed **$3,000**.
 - **Feature–genre fit:** each Story carries tags; mismatched features (e.g. hardcore monetization in a cozy puzzle) lower release quality, matched ones raise it.
 - Name generation: two-word combos from word banks in the GIM style ("Merge Mania", "Cookie Cascade"), with an exclusion list of real GIM game names so none are reproduced.
 
@@ -80,15 +80,15 @@ Each week has two phases:
 |---|---|---|
 | Feature request (per game, with *predicted* impact — actual is sampled around it, sometimes lies) | Story added to TO DO | Nothing |
 | Live bug report | Bug added to TO DO | Game's rating decays, escalates if repeated |
-| Opportunity ("featuring if you full-rollout {game} by CW X") | Quest with installs-spike reward | Nothing |
-| Mandatory SDK update (deadline, e.g. 3 weeks) | Task added | Missed deadline → flat fine |
+| Opportunity ("featuring if you full-rollout {game} by CW X") | Tracked goal shown in Inbox; installs-spike reward applied automatically if met | Nothing |
+| Mandatory SDK update (deadline, e.g. 3 weeks) | Task added; fulfilled when it reaches QA COMPLETE (no release needed) | Missed deadline → flat fine |
 
 ## 7. Economy (initial balance — all constants live in one tunable module)
 
 - Starting cash **$50,000**; team: Dev(3), Dev(2), QA(3), RM(3) → payroll ≈ $5,000/week.
 - Starting portfolio revenue ≈ breakeven with payroll, with decay pushing it negative → the player must ship within the first few weeks.
 - Revenue per game per week = `installs × ARPDAU` (ARPDAU folded to a weekly coefficient).
-- Score (shown on game over + emoji share): `weeks survived` + `company value` = cash + Σ(installs × value coefficient).
+- Score (shown on game over + emoji share) = **company value in $** = cash + Σ(installs × value coefficient); weeks survived is displayed alongside, not summed into the score.
 - Initial formula sketches (tunable constants, not contracts):
   - Dev speed = skill + 1 points/week; Story effort 4–8, Bug 2–4, rework 40% of original.
   - Expected hidden bugs ≈ effort × (6 − skill) × 0.04; QA catch rate per bug ≈ 0.5 + 0.09 × skill.
