@@ -1,5 +1,6 @@
 // src/engine/__tests__/helpers.ts
 import { newGame } from '../newGame';
+import { QA_EFFORT_FRACTION } from '../constants';
 import type { GameState, Role, TeamMember, Ticket } from '../types';
 
 export function makeState(seed = 1): GameState {
@@ -35,4 +36,8 @@ export function assignTo(_s: GameState, t: Ticket, m: TeamMember): void {
   t.assigneeId = m.id;
   m.ticketKey = t.key;
   if (t.status === 'TODO') t.status = 'IN_DEVELOPMENT';
+  else if (t.status === 'AWAITING_QA') {
+    t.status = 'IN_QA';
+    if (t.qaEffort <= 0) t.qaEffort = Math.ceil(t.phaseEffort * QA_EFFORT_FRACTION);
+  }
 }

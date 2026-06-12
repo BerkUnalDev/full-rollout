@@ -1,7 +1,7 @@
 // src/engine/work.ts
 import { Rng } from './rng';
 import {
-  BUG_RATE_PER_POINT, QA_CATCH_BASE, QA_CATCH_PER_SKILL, QA_EFFORT_FRACTION, REWORK_FRACTION, speedOf,
+  BUG_RATE_PER_POINT, QA_CATCH_BASE, QA_CATCH_PER_SKILL, REWORK_FRACTION, speedOf,
 } from './constants';
 import type { GameState } from './types';
 
@@ -23,27 +23,22 @@ export function runDevPhase(s: GameState, rng: Rng): void {
       t.hiddenBugs += rng.count(expectedBugs);
       t.status = 'AWAITING_QA';
       t.assigneeId = null;
+      t.qaEffort = 0; // fresh QA phase — sized when a QA member is assigned
       m.ticketKey = null;
     }
   }
 }
 
-/** Mutates s: every QA member works or pulls one ticket. */
+/** Mutates s: every ASSIGNED QA member applies one week of testing.
+ *  QA never self-assigns — the player staffs testing, and how long it
+ *  takes stays hidden from the UI. */
 export function runQaPhase(s: GameState, rng: Rng): void {
   for (const qa of s.team) {
-    if (qa.role !== 'QA') continue;
-    let t = qa.ticketKey ? s.tickets.find((x) => x.key === qa.ticketKey) ?? null : null;
-    if (t && t.status !== 'IN_QA') {
+    if (qa.role !== 'QA' || !qa.ticketKey) continue;
+    const t = s.tickets.find((x) => x.key === qa.ticketKey);
+    if (!t || t.status !== 'IN_QA') {
       qa.ticketKey = null;
-      t = null;
-    }
-    if (!t) {
-      t = s.tickets.find((x) => x.status === 'AWAITING_QA') ?? null; // array order = oldest first
-      if (!t) continue;
-      t.status = 'IN_QA';
-      t.assigneeId = qa.id;
-      qa.ticketKey = t.key;
-      t.qaEffort = Math.ceil(t.phaseEffort * QA_EFFORT_FRACTION);
+      continue;
     }
     t.qaEffort -= Math.min(t.qaEffort, speedOf(qa.skill));
     if (t.qaEffort > 0) continue;
@@ -62,7 +57,8 @@ export function runQaPhase(s: GameState, rng: Rng): void {
       const rework = Math.max(1, Math.ceil(t.effortTotal * REWORK_FRACTION));
       t.effort = rework;
       t.phaseEffort = rework;
-      t.status = 'IN_DEVELOPMENT'; // unassigned — player must re-staff it
+      t.status = 'TODO'; // back to the backlog for rework — player re-staffs it
+      s.pendingEvents.push(`🔁 ${t.title} bounced back from QA`);
     } else {
       t.status = 'QA_COMPLETE';
     }

@@ -8,8 +8,10 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
   const t = s.tickets.find((x) => x.key === ticketKey);
   if (!t) return null;
   const game = s.games.find((g) => g.id === t.gameId);
-  const devs = s.team.filter((m) => m.role === 'Developer');
-  const assignable = t.type !== 'Release Ticket' && (t.status === 'TODO' || t.status === 'IN_DEVELOPMENT');
+  const devPhase = t.status === 'TODO' || t.status === 'IN_DEVELOPMENT';
+  const qaPhase = t.status === 'AWAITING_QA' || t.status === 'IN_QA';
+  const assignable = t.type !== 'Release Ticket' && (devPhase || qaPhase);
+  const pool = s.team.filter((m) => m.role === (devPhase ? 'Developer' : 'QA'));
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -25,10 +27,17 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
             <span className="sub">(predictions can lie — you'll see the truth in the report card)</span>
           </p>
         )}
-        <p>
-          Effort: {t.phaseEffort - t.effort}/{t.phaseEffort} points done
-          {/* hidden bugs stay hidden — never render t.hiddenBugs! */}
-        </p>
+        {devPhase ? (
+          <p>
+            Effort: {t.phaseEffort - t.effort}/{t.phaseEffort} points done
+            {/* hidden bugs stay hidden — never render t.hiddenBugs! */}
+          </p>
+        ) : qaPhase ? (
+          <p className="sub">
+            🔬 Pick a tester below. How long testing takes is anyone's guess —
+            you'll know when they're done. {/* qaEffort stays hidden — that's the thrill */}
+          </p>
+        ) : null}
         {assignable && (
           <select
             className="assign"
@@ -40,7 +49,7 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
             }}
           >
             <option value="">Unassigned</option>
-            {devs.map((m) => (
+            {pool.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name} {'⭐'.repeat(m.skill)}{m.ticketKey && m.ticketKey !== t.key ? ' — busy (will switch)' : ''}
               </option>

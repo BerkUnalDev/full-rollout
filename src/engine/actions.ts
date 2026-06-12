@@ -3,7 +3,7 @@ import { Rng } from './rng';
 import { applyFullRollout, applyPullBack, performCut } from './releases';
 import { generateGameName } from './names';
 import { createTicket, effortFor, genId, genStoryConcept, genBugTitle } from './generators';
-import { GENRE_FIT, NEW_GAME_COST } from './constants';
+import { GENRE_FIT, NEW_GAME_COST, QA_EFFORT_FRACTION } from './constants';
 import { NEW_GAME_STORY_TITLES } from './data';
 import { acceptInboxItem, declineInboxItem } from './inbox';
 import type { GameState, Genre, PlanAction, PortfolioGame, Ticket } from './types';
@@ -41,31 +41,53 @@ function freeMemberFromTicket(s: GameState, ticket: Ticket): void {
   ticket.assigneeId = null;
 }
 
+// Invariant: a ticket is in an "active" column (IN_DEVELOPMENT / IN_QA) iff it
+// has an assignee. Unassigned work always sits in its queue column.
+function returnToQueue(t: Ticket): void {
+  if (t.status === 'IN_DEVELOPMENT') t.status = 'TODO';
+  else if (t.status === 'IN_QA') t.status = 'AWAITING_QA';
+}
+
 handlers.assign = ({ s }, a: { ticketKey: string; memberId: string }) => {
   const t = getTicket(s, a.ticketKey);
   const m = s.team.find((x) => x.id === a.memberId);
   if (!m) throw new Error('No such team member');
-  if (m.role !== 'Developer') throw new Error('Only developers can be assigned');
   if (t.type === 'Release Ticket') throw new Error('Release tickets are handled by RMs');
-  if (t.status !== 'TODO' && t.status !== 'IN_DEVELOPMENT') {
-    throw new Error(`Cannot assign a ticket in ${t.status}`);
+  if (m.role === 'Developer') {
+    if (t.status !== 'TODO' && t.status !== 'IN_DEVELOPMENT') {
+      throw new Error(`Developers can't pick up a ticket in ${t.status}`);
+    }
+  } else if (m.role === 'QA') {
+    if (t.status !== 'AWAITING_QA' && t.status !== 'IN_QA') {
+      throw new Error(`QA can't pick up a ticket in ${t.status}`);
+    }
+  } else {
+    throw new Error('Release managers handle releases, not tickets');
   }
   if (t.assigneeId && t.assigneeId !== m.id) throw new Error('Ticket already assigned');
-  // Free the dev's previous ticket, if any.
+  // Free the member's previous ticket, if any — it returns to its queue.
   if (m.ticketKey && m.ticketKey !== t.key) {
     const old = getTicket(s, m.ticketKey);
     freeMemberFromTicket(s, old);
+    returnToQueue(old);
   }
   m.ticketKey = t.key;
   t.assigneeId = m.id;
   if (t.status === 'TODO') t.status = 'IN_DEVELOPMENT';
+  else if (t.status === 'AWAITING_QA') {
+    t.status = 'IN_QA';
+    // Size the QA pass once per phase; remaining effort survives re-assignment.
+    if (t.qaEffort <= 0) t.qaEffort = Math.ceil(t.phaseEffort * QA_EFFORT_FRACTION);
+  }
 };
 
 handlers.unassign = ({ s }, a: { ticketKey: string }) => {
   const t = getTicket(s, a.ticketKey);
-  if (t.status !== 'IN_DEVELOPMENT') throw new Error('Only dev-phase tickets can be unassigned');
+  if (t.status !== 'IN_DEVELOPMENT' && t.status !== 'IN_QA') {
+    throw new Error('Only active tickets can be unassigned');
+  }
   freeMemberFromTicket(s, t);
-  if (t.pointsWorked === 0) t.status = 'TODO';
+  returnToQueue(t); // progress (dev points / remaining QA effort) is preserved
 };
 
 handlers.cutRelease = ({ s, rng }, a: { gameId: string }) => {
