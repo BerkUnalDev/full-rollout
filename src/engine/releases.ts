@@ -76,6 +76,8 @@ export function shipCuttingReleases(s: GameState): void {
     if (r.status !== 'cutting') continue;
     r.status = 'soft';
     r.shippedWeek = s.weekIndex;
+    const game = s.games.find((g) => g.id === r.gameId)!;
+    s.pendingEvents.push(`🚀 ${game.name} ${r.version} soft-launched to 10% of players`);
     for (const key of [...r.ticketKeys, r.releaseTicketKey]) {
       const t = s.tickets.find((x) => x.key === key);
       if (t) {
