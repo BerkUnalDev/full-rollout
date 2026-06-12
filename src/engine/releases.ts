@@ -1,11 +1,14 @@
 // src/engine/releases.ts
 import { Rng } from './rng';
-import { computeQuality, deriveReportCard } from './quality';
-import { createTicket, genId } from './generators';
+import { clamp, computeQuality, deriveReportCard } from './quality';
+import { createTicket, genId, genBugTitle, effortFor } from './generators';
 import { cwLabel } from './week';
+import { GROWTH_DIVISOR, NEW_GAME_SEED_PER_QUALITY, QUALITY_BASE } from './constants';
 import type { GameState, PortfolioGame, Release, Ticket } from './types';
 
 export function qaCompleteFor(s: GameState, gameId: string): Ticket[] {
+  // Defense-in-depth: the per-game in-flight check already blocks re-cutting,
+  // but the locked set stays in case that rule is ever relaxed.
   const locked = new Set(s.releases.flatMap((r) => (r.status === 'decided' ? [] : r.ticketKeys)));
   return s.tickets.filter(
     (t) => t.gameId === gameId && t.status === 'QA_COMPLETE' && !locked.has(t.key),
@@ -92,4 +95,62 @@ export function arriveReports(s: GameState, rng: Rng): string[] {
     }
   }
   return arrived;
+}
+
+function decidable(s: GameState, releaseId: string): Release {
+  const r = s.releases.find((x) => x.id === releaseId);
+  if (!r) throw new Error('No such release');
+  if (r.status !== 'soft' || !r.reportCard) throw new Error('No report card yet');
+  return r;
+}
+
+/** Mutates s: apply the release to the live game. */
+export function applyFullRollout(s: GameState, releaseId: string): void {
+  const r = decidable(s, releaseId);
+  const g = s.games.find((x) => x.id === r.gameId)!;
+  const card = r.reportCard!;
+  if (g.players === 0) {
+    g.players = r.quality * NEW_GAME_SEED_PER_QUALITY; // launch!
+  } else {
+    g.players = Math.max(0, Math.round(g.players * (1 + (r.quality - QUALITY_BASE) / GROWTH_DIVISOR)));
+  }
+  g.revenuePerPlayer = Math.max(0.001, g.revenuePerPlayer * (1 + card.revenueImpactPct / 100));
+  g.rating = clamp(Math.round((g.rating + card.ratingDelta) * 10) / 10, 1, 5);
+  g.version = r.version;
+  g.lastRolloutWeek = s.weekIndex;
+  r.status = 'decided';
+  r.decision = 'full';
+  s.pendingEvents.push(`✅ ${g.name} ${r.version} fully rolled out`);
+  s.log.push(`${r.cwLabel}: ${g.name} ${r.version} full rollout`);
+  // Featuring opportunities tied to this game pay out now.
+  for (const item of s.inbox) {
+    if (
+      item.kind === 'opportunity' && item.status === 'accepted' &&
+      item.gameId === g.id && (item.deadlineWeek ?? -1) >= s.weekIndex
+    ) {
+      g.players = Math.round(g.players * (1 + (item.rewardPlayersPct ?? 0)));
+      item.status = 'done';
+      s.pendingEvents.push(`🌟 ${g.name} got featured — players spiked!`);
+      s.log.push(`${r.cwLabel}: ${g.name} featured by the platform`);
+    }
+  }
+}
+
+/** Mutates s: withdraw the soft launch; bugs become tickets; impact returns to the pool. */
+export function applyPullBack(s: GameState, rng: Rng, releaseId: string): void {
+  const r = decidable(s, releaseId);
+  const g = s.games.find((x) => x.id === r.gameId)!;
+  for (let i = 0; i < r.missedBugs; i++) {
+    createTicket(s, {
+      type: 'Bug', gameId: g.id,
+      title: `${g.name} - ${genBugTitle(rng)}`, effort: effortFor(rng, 'Bug'),
+    });
+  }
+  g.pendingImpact = {
+    revenuePct: g.pendingImpact.revenuePct + r.impact.revenuePct,
+    ratingBonus: g.pendingImpact.ratingBonus + r.impact.ratingBonus,
+  };
+  r.status = 'decided';
+  r.decision = 'pulled';
+  s.pendingEvents.push(`↩️ ${g.name} ${r.version} pulled back — ${r.missedBugs} bug(s) filed`);
 }

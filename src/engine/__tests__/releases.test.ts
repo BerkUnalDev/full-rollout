@@ -4,6 +4,7 @@ import { applyAction } from '../actions';
 import { arriveReports, canCutRelease, computeNextVersion, shipCuttingReleases } from '../releases';
 import { Rng } from '../rng';
 import { makeState, addTicket } from './helpers';
+import { NEW_GAME_SEED_PER_QUALITY } from '../constants';
 import type { GameState, Release } from '../types';
 
 function withQaComplete(s: GameState, gameId: string, type: 'Story' | 'Bug' = 'Story') {
@@ -132,8 +133,7 @@ describe('rollout decisions', () => {
     s.games[0].players = 0;
     const r = decidableRelease(s, s.games[0].id, 70);
     const s2 = applyAction(s, { type: 'fullRollout', releaseId: r.id });
-    // Assuming players = quality * 400 for first rollout
-    expect(s2.games[0].players).toBeGreaterThan(0);
+    expect(s2.games[0].players).toBe(70 * NEW_GAME_SEED_PER_QUALITY);
   });
 
   it('pull back spawns bug tickets and returns impact to the pending pool', () => {

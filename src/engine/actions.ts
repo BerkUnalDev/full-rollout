@@ -1,6 +1,6 @@
 // src/engine/actions.ts
 import { Rng } from './rng';
-import { performCut } from './releases';
+import { applyFullRollout, applyPullBack, performCut } from './releases';
 import type { GameState, PlanAction, Ticket } from './types';
 
 type Ctx = { s: GameState; rng: Rng };
@@ -65,4 +65,12 @@ handlers.unassign = ({ s }, a: { ticketKey: string }) => {
 
 handlers.cutRelease = ({ s, rng }, a: { gameId: string }) => {
   performCut(s, rng, a.gameId);
+};
+
+handlers.fullRollout = ({ s }, a: { releaseId: string }) => {
+  applyFullRollout(s, a.releaseId);
+};
+
+handlers.pullBack = ({ s, rng }, a: { releaseId: string }) => {
+  applyPullBack(s, rng, a.releaseId);
 };

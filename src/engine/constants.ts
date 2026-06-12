@@ -43,6 +43,7 @@ export const HAPPINESS_MEH = 45;
 export const REVENUE_IMPACT_CAP: readonly [number, number] = [-20, 40];
 export const RATING_DELTA_CAP = 0.6;
 export const GROWTH_DIVISOR = 200; // players ×= 1 + (quality − 55) / this
+export const NEW_GAME_SEED_PER_QUALITY = 400; // first rollout of a 0-player game: players = quality × this
 
 // Decay
 export const DECAY_GRACE_WEEKS = 6;
