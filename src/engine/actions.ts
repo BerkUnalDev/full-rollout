@@ -3,7 +3,10 @@ import { Rng } from './rng';
 import type { GameState, PlanAction, Ticket } from './types';
 
 type Ctx = { s: GameState; rng: Rng };
-const handlers: Partial<Record<PlanAction['type'], (ctx: Ctx, a: any) => void>> = {};
+type Handlers = {
+  [K in PlanAction['type']]?: (ctx: Ctx, a: Extract<PlanAction, { type: K }>) => void;
+};
+const handlers: Handlers = {};
 
 /** Pure plan-phase reducer. Throws on invalid actions; never mutates input. */
 export function applyAction(state: GameState, action: PlanAction): GameState {
@@ -12,7 +15,7 @@ export function applyAction(state: GameState, action: PlanAction): GameState {
   const rng = new Rng(s.rngState);
   const handler = handlers[action.type];
   if (!handler) throw new Error(`Unknown action ${action.type}`);
-  handler({ s, rng }, action);
+  (handler as (ctx: Ctx, a: PlanAction) => void)({ s, rng }, action);
   s.rngState = rng.state;
   return s;
 }
@@ -26,7 +29,8 @@ export function getTicket(s: GameState, key: string): Ticket {
 function freeMemberFromTicket(s: GameState, ticket: Ticket): void {
   if (ticket.assigneeId) {
     const m = s.team.find((x) => x.id === ticket.assigneeId);
-    if (m) m.ticketKey = null;
+    if (!m) throw new Error(`Assigned member ${ticket.assigneeId} not found — corrupt state`);
+    m.ticketKey = null;
   }
   ticket.assigneeId = null;
 }
@@ -44,7 +48,7 @@ handlers.assign = ({ s }, a: { ticketKey: string; memberId: string }) => {
   // Free the dev's previous ticket, if any.
   if (m.ticketKey && m.ticketKey !== t.key) {
     const old = getTicket(s, m.ticketKey);
-    old.assigneeId = null;
+    freeMemberFromTicket(s, old);
   }
   m.ticketKey = t.key;
   t.assigneeId = m.id;

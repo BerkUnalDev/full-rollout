@@ -43,6 +43,18 @@ describe('assign / unassign', () => {
     expect(t2.assigneeId).toBeNull();
   });
 
+  it('unassign keeps an in-progress ticket in IN_DEVELOPMENT', () => {
+    const s = newGame(1);
+    const t = s.tickets[0];
+    const dev = devOf(s);
+    let st = applyAction(s, { type: 'assign', ticketKey: t.key, memberId: dev.id });
+    st.tickets.find((x) => x.key === t.key)!.pointsWorked = 3; // simulate a week of work
+    st = applyAction(st, { type: 'unassign', ticketKey: t.key });
+    const t2 = st.tickets.find((x) => x.key === t.key)!;
+    expect(t2.status).toBe('IN_DEVELOPMENT');
+    expect(t2.assigneeId).toBeNull();
+  });
+
   it('rejects assigning non-developers or wrong ticket states', () => {
     const s = newGame(1);
     const qa = s.team.find((m) => m.role === 'QA')!;
