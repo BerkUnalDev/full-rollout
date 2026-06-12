@@ -1,5 +1,6 @@
 // src/engine/actions.ts
 import { Rng } from './rng';
+import { performCut } from './releases';
 import type { GameState, PlanAction, Ticket } from './types';
 
 type Ctx = { s: GameState; rng: Rng };
@@ -60,4 +61,8 @@ handlers.unassign = ({ s }, a: { ticketKey: string }) => {
   if (t.status !== 'IN_DEVELOPMENT') throw new Error('Only dev-phase tickets can be unassigned');
   freeMemberFromTicket(s, t);
   if (t.pointsWorked === 0) t.status = 'TODO';
+};
+
+handlers.cutRelease = ({ s, rng }, a: { gameId: string }) => {
+  performCut(s, rng, a.gameId);
 };
