@@ -4,7 +4,7 @@ import { applyAction } from '../actions';
 import { arriveReports, canCutRelease, computeNextVersion, shipCuttingReleases } from '../releases';
 import { Rng } from '../rng';
 import { makeState, addTicket } from './helpers';
-import type { GameState } from '../types';
+import type { GameState, Release } from '../types';
 
 function withQaComplete(s: GameState, gameId: string, type: 'Story' | 'Bug' = 'Story') {
   return addTicket(s, {
@@ -87,5 +87,73 @@ describe('ship & report arrival', () => {
     const arrived = arriveReports(s2, rng);
     expect(arrived).toHaveLength(1);
     expect(s2.releases[0].reportCard).not.toBeNull();
+  });
+});
+
+function decidableRelease(s: GameState, gameId: string, quality: number, missedBugs = 0): Release {
+  const r: Release = {
+    id: `rel-test-${quality}`, gameId, version: '9.9.0', cwLabel: 'CW 24/2026',
+    ticketKeys: [], releaseTicketKey: 'GIM-9999', quality, missedBugs,
+    impact: { revenuePct: 10, ratingBonus: 0.2 },
+    status: 'soft', shippedWeek: 0,
+    reportCard: { happiness: 'liked', bugReports: missedBugs, revenueImpactPct: 12, ratingDelta: 0.3 },
+    decision: null,
+  };
+  s.releases.push(r);
+  return r;
+}
+
+describe('rollout decisions', () => {
+  it('full rollout applies effects and stamps the game', () => {
+    const s = makeState();
+    const g = s.games[0];
+    const before = { players: g.players, rpp: g.revenuePerPlayer, rating: g.rating };
+    const r = decidableRelease(s, g.id, 80);
+    const s2 = applyAction(s, { type: 'fullRollout', releaseId: r.id });
+    const g2 = s2.games[0];
+    expect(g2.players).toBeGreaterThan(before.players); // q80 > 55 → growth
+    expect(g2.revenuePerPlayer).toBeCloseTo(before.rpp * 1.12, 5);
+    expect(g2.rating).toBeCloseTo(before.rating + 0.3, 5);
+    expect(g2.version).toBe('9.9.0');
+    expect(g2.lastRolloutWeek).toBe(s2.weekIndex);
+    expect(s2.releases.find((x) => x.id === r.id)!.decision).toBe('full');
+  });
+
+  it('bad-quality full rollout shrinks the player base', () => {
+    const s = makeState();
+    const g = s.games[0];
+    const r = decidableRelease(s, g.id, 30);
+    const s2 = applyAction(s, { type: 'fullRollout', releaseId: r.id });
+    expect(s2.games[0].players).toBeLessThan(g.players);
+  });
+
+  it('first rollout of a 0-player game seeds players from quality', () => {
+    const s = makeState();
+    s.games[0].players = 0;
+    const r = decidableRelease(s, s.games[0].id, 70);
+    const s2 = applyAction(s, { type: 'fullRollout', releaseId: r.id });
+    // Assuming players = quality * 400 for first rollout
+    expect(s2.games[0].players).toBeGreaterThan(0);
+  });
+
+  it('pull back spawns bug tickets and returns impact to the pending pool', () => {
+    const s = makeState();
+    const g = s.games[0];
+    const r = decidableRelease(s, g.id, 40, 3);
+    const bugsBefore = s.tickets.filter((t) => t.type === 'Bug').length;
+    const s2 = applyAction(s, { type: 'pullBack', releaseId: r.id });
+    expect(s2.tickets.filter((t) => t.type === 'Bug').length).toBe(bugsBefore + 3);
+    expect(s2.games[0].pendingImpact).toEqual({ revenuePct: 10, ratingBonus: 0.2 });
+    expect(s2.releases.find((x) => x.id === r.id)!.decision).toBe('pulled');
+    // game stats untouched
+    expect(s2.games[0].players).toBe(g.players);
+  });
+
+  it('decisions require an arrived report card', () => {
+    const s = makeState();
+    const r = decidableRelease(s, s.games[0].id, 70);
+    r.reportCard = null;
+    expect(() => applyAction(s, { type: 'fullRollout', releaseId: r.id })).toThrow();
+    expect(() => applyAction(s, { type: 'pullBack', releaseId: r.id })).toThrow();
   });
 });
