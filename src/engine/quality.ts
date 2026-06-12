@@ -8,7 +8,12 @@ import {
 import type { Happiness, PortfolioGame, Release, ReportCard, Ticket } from './types';
 
 export const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-const round1 = (v: number) => Math.round(v * 10) / 10;
+// Normalizes -0 to 0: JSON.stringify drops the sign, which would make the
+// in-memory state diverge from the autosaved one.
+const round1 = (v: number) => {
+  const r = Math.round(v * 10) / 10;
+  return r === 0 ? 0 : r;
+};
 
 /** Hidden quality of a release computed at cut time from its tickets. */
 export function computeQuality(
