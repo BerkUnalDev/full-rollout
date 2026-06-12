@@ -72,7 +72,7 @@ export const OFFERS_PER_WEEK: readonly [number, number] = [1, 2];
 // Genre ↔ feature-tag fit: +3 per story with a good tag, −5 per story with a bad tag.
 export const GENRE_FIT_GOOD = 3;
 export const GENRE_FIT_BAD = -5;
-export const GENRE_FIT: Record<Genre, { good: FeatureTag[]; bad: FeatureTag[] }> = {
+export const GENRE_FIT: Record<Genre, { good: readonly FeatureTag[]; bad: readonly FeatureTag[] }> = {
   Puzzle: { good: ['levels', 'events'], bad: ['monetization'] },
   Merge: { good: ['meta', 'events'], bad: ['social'] },
   Word: { good: ['levels', 'social'], bad: ['meta'] },

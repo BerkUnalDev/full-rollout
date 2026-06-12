@@ -16,4 +16,9 @@ describe('week helpers', () => {
     expect(cwLabel(0)).toBe('CW 24/2026');
     expect(cwLabel(29)).toBe('CW 1/2027');
   });
+
+  it('handles negative weekIndex (lastRolloutWeek before game start)', () => {
+    expect(weekToCW(-8)).toEqual({ week: 16, year: 2026 });
+    expect(weekToCW(-24)).toEqual({ week: 52, year: 2025 });
+  });
 });

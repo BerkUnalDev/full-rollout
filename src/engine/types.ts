@@ -82,7 +82,7 @@ export interface Release {
   gameId: string;
   version: string;
   cwLabel: string; // frozen at cut time, e.g. "CW 26/2026"
-  ticketKeys: string[];
+  ticketKeys: readonly string[];
   quality: number; // hidden 0-100
   missedBugs: number; // hidden
   impact: Impact; // summed story impact incl. game.pendingImpact at cut

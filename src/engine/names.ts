@@ -11,6 +11,7 @@ export function generateGameName(rng: Rng, used: readonly string[]): string {
   // Bank exhausted (400 combos) — extremely long runs only. Suffix a numeral.
   let n = 2;
   const base = `${rng.pick(NAME_FIRST)} ${rng.pick(NAME_SECOND)}`;
+  if (!used.includes(base) && !(REAL_GIM_NAMES as readonly string[]).includes(base)) return base;
   while (used.includes(`${base} ${n}`)) n++;
   return `${base} ${n}`;
 }
