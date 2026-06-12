@@ -21,6 +21,7 @@ export function computeQuality(
   const skillSum = included.reduce((a, t) => a + t.devSkillSum, 0);
   const avgSkill = points > 0 ? skillSum / points : 3;
 
+  // At most one good and one bad bonus per ticket (any-match), then clamped.
   const fitTable = GENRE_FIT[game.genre];
   let fit = 0;
   for (const t of included) {
@@ -46,6 +47,7 @@ export function deriveReportCard(release: Release, rng: Rng): ReportCard {
     release.missedBugs === 0
       ? (rng.chance(0.15) ? 1 : 0)
       : Math.round(release.missedBugs * rng.range(1.5, 3.5));
+  // Story contribution scales with quality (×q/70): at q=0 execution failure erases feature value — intentional.
   const revenueImpactPct = clamp(
     round1(release.impact.revenuePct * (q / 70) + (q - QUALITY_BASE) / 5 + rng.noise(2)),
     REVENUE_IMPACT_CAP[0], REVENUE_IMPACT_CAP[1],

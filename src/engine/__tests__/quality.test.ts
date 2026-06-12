@@ -55,8 +55,9 @@ describe('deriveReportCard', () => {
 
   it('amplifies missed bugs into bug reports', () => {
     const card = deriveReportCard(fakeRelease({ missedBugs: 3 }), new Rng(2));
-    expect(card.bugReports).toBeGreaterThanOrEqual(4); // 3 × [1.5, 3.5)
-    expect(card.bugReports).toBeLessThanOrEqual(11);
+    // 3 × [1.5, 3.5) rounded → [5, 10]
+    expect(card.bugReports).toBeGreaterThanOrEqual(5);
+    expect(card.bugReports).toBeLessThanOrEqual(10);
   });
 
   it('caps rating delta and revenue impact', () => {
