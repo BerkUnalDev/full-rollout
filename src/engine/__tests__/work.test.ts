@@ -55,5 +55,10 @@ describe('runDevPhase', () => {
     dev.ticketKey = 'GIM-9999'; // ticket does not exist
     expect(() => runDevPhase(s, new Rng(1))).not.toThrow();
     expect(dev.ticketKey).toBeNull();
+
+    const t = addTicket(s, { status: 'AWAITING_QA' });
+    dev.ticketKey = t.key; // stale pointer to a non-dev-phase ticket
+    expect(() => runDevPhase(s, new Rng(1))).not.toThrow();
+    expect(dev.ticketKey).toBeNull();
   });
 });

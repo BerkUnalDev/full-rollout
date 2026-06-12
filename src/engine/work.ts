@@ -17,7 +17,7 @@ export function runDevPhase(s: GameState, rng: Rng): void {
     t.pointsWorked += applied;
     t.devSkillSum += applied * m.skill;
     if (t.effort <= 0) {
-      const expectedBugs = t.phaseEffort * (6 - m.skill) * BUG_RATE_PER_POINT;
+      const expectedBugs = t.phaseEffort * Math.max(0, 6 - m.skill) * BUG_RATE_PER_POINT;
       t.hiddenBugs += rng.count(expectedBugs);
       t.status = 'AWAITING_QA';
       t.assigneeId = null;

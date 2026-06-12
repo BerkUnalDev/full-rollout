@@ -6,10 +6,9 @@ export function makeState(seed = 1): GameState {
   return newGame(seed);
 }
 
-let n = 0;
 export function addMember(s: GameState, role: Role, skill: number): TeamMember {
   const m: TeamMember = {
-    id: `tm${++n}`, name: `Test ${role}`, role, skill, salary: 1000, ticketKey: null,
+    id: `tm${s.nextId++}`, name: `Test ${role}`, role, skill, salary: 1000, ticketKey: null,
   };
   s.team.push(m);
   return m;
