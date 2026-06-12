@@ -68,3 +68,11 @@ describe('deriveReportCard', () => {
     expect(awful.revenueImpactPct).toBeGreaterThanOrEqual(-20);
   });
 });
+
+describe('clamp', () => {
+  it('clamps to the inclusive range', () => {
+    expect(clamp(5, 0, 10)).toBe(5);
+    expect(clamp(-3, 0, 10)).toBe(0);
+    expect(clamp(42, 0, 10)).toBe(10);
+  });
+});
