@@ -7,7 +7,7 @@ export function HowToPlayModal({ onClose }: { onClose: () => void }) {
         <p className="sub">You run a mobile game studio. Don't go broke.</p>
         <ul>
           <li>📨 <strong>Inbox:</strong> accept feature requests and bug reports — they become tickets.</li>
-          <li>📋 <strong>Board:</strong> assign developers; tickets flow Dev → QA → QA Complete each week.</li>
+          <li>📋 <strong>Board:</strong> assign developers to build and QA to test — how long testing takes is a surprise.</li>
           <li>📦 <strong>Releases:</strong> bundle QA-complete work, soft-launch to 10%, read the report card.</li>
           <li>✅ <strong>Full Rollout</strong> good releases for growth — pull back bad ones before they tank your rating.</li>
           <li>💸 Stale games decay, salaries are weekly. Ship, grow, buy more games — survive.</li>

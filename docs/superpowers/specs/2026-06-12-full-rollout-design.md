@@ -29,7 +29,7 @@ Each week has two phases:
 
 **End Week** (single button) → resolution, fully automatic and deterministic given the RNG seed:
 1. Assigned devs progress their tickets; finished dev work moves to AWAITING QA (hidden bugs injected based on dev skill).
-2. Idle QA members pull the oldest AWAITING QA ticket into IN QA and work it; on completion they either catch bugs (ticket returns to IN DEVELOPMENT with rework effort; caught bugs are removed, uncaught ones stay hidden and roll again on the next QA pass) or pass it to QA COMPLETE (missed bugs stay hidden).
+2. Player-assigned QA members work their ticket (QA never self-assigns; testing duration is hidden from the UI — v1.1 change); on completion they either catch bugs (ticket bounces back to TO DO with rework effort and a report-line event; caught bugs are removed, uncaught ones stay hidden and roll again on the next QA pass) or pass it to QA COMPLETE (missed bugs stay hidden).
 3. Release Managers process releases cut this week → ship to **10% soft launch**; contained tickets move to DONE.
 4. Releases soft-launched last week receive their **report card** (visible from now on; rollout decision unlocked).
 5. Live games produce revenue; stale games decay; salaries are paid.
@@ -52,7 +52,7 @@ Each week has two phases:
 | Role | What skill (1–5) does | Notes |
 |---|---|---|
 | Developer | Speed (points/week) and hidden-bug rate (low skill → more bugs) | One active ticket at a time |
-| QA | Bug catch rate and test speed | Auto-pulls from AWAITING QA when idle |
+| QA | Bug catch rate and test speed (speed is never shown) | Player-assigned, like devs (v1.1; was auto-pull in v1) |
 | Release Manager | Each RM can cut **one release per week** | Rollout decisions are free (player-made) |
 
 - Weekly salary scales with skill. Hiring costs a signing fee of 2× weekly salary; candidates (2–3) refresh weekly. No firing in v1 (YAGNI; add later if balance needs it).

@@ -29,6 +29,10 @@ describe('save/load', () => {
         const todo = s.tickets.find((t) => t.status === 'TODO');
         if (todo) safe({ type: 'assign', ticketKey: todo.key, memberId: dev.id });
       }
+      for (const qa of s.team.filter((m) => m.role === 'QA' && !m.ticketKey)) {
+        const waiting = s.tickets.find((t) => t.status === 'AWAITING_QA');
+        if (waiting) safe({ type: 'assign', ticketKey: waiting.key, memberId: qa.id });
+      }
       for (const g of s.games) {
         if (canCutRelease(s, g.id).ok) safe({ type: 'cutRelease', gameId: g.id });
       }

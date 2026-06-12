@@ -18,6 +18,10 @@ function autopilotWeek(s: GameState): GameState {
     const todo = st.tickets.find((t) => t.status === 'TODO');
     if (todo) safe({ type: 'assign', ticketKey: todo.key, memberId: dev.id });
   }
+  for (const qa of st.team.filter((m) => m.role === 'QA' && !m.ticketKey)) {
+    const waiting = st.tickets.find((t) => t.status === 'AWAITING_QA');
+    if (waiting) safe({ type: 'assign', ticketKey: waiting.key, memberId: qa.id });
+  }
   for (const r of st.releases.filter((x) => x.status === 'soft' && x.reportCard)) {
     safe({ type: 'fullRollout', releaseId: r.id });
   }
