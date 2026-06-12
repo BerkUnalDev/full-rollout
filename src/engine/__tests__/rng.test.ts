@@ -64,4 +64,8 @@ describe('Rng', () => {
     cont.next(); cont.next();
     expect(resumed.next()).toBe(cont.next());
   });
+
+  it('produces known output for seed 42 (golden value — do not change)', () => {
+    expect(new Rng(42).next()).toBe(0.6011037519201636);
+  });
 });

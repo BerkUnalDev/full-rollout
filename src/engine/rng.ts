@@ -2,7 +2,10 @@
 // mulberry32 PRNG. The entire generator state is one 32-bit int, so it can
 // live inside GameState and make every resolution reproducible.
 export class Rng {
-  constructor(public state: number) {}
+  state: number;
+  constructor(state: number) {
+    this.state = state | 0;
+  }
 
   next(): number {
     this.state = (this.state + 0x6d2b79f5) | 0;
@@ -23,6 +26,7 @@ export class Rng {
   }
 
   pick<T>(arr: readonly T[]): T {
+    if (arr.length === 0) throw new Error('pick: empty array');
     return arr[this.int(0, arr.length - 1)];
   }
 
@@ -36,7 +40,7 @@ export class Rng {
     return base + (this.chance(expected - base) ? 1 : 0);
   }
 
-  /** Symmetric noise in [-amp, +amp). */
+  /** Noise in [-amp, +amp); uniform, zero-mean. */
   noise(amp: number): number {
     return (this.next() * 2 - 1) * amp;
   }
