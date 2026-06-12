@@ -100,7 +100,8 @@ export function arriveReports(s: GameState, rng: Rng): string[] {
 function decidable(s: GameState, releaseId: string): Release {
   const r = s.releases.find((x) => x.id === releaseId);
   if (!r) throw new Error('No such release');
-  if (r.status !== 'soft' || !r.reportCard) throw new Error('No report card yet');
+  if (r.status !== 'soft') throw new Error('Release is not in soft-launch state');
+  if (!r.reportCard) throw new Error('No report card yet');
   return r;
 }
 
@@ -153,4 +154,5 @@ export function applyPullBack(s: GameState, rng: Rng, releaseId: string): void {
   r.status = 'decided';
   r.decision = 'pulled';
   s.pendingEvents.push(`↩️ ${g.name} ${r.version} pulled back — ${r.missedBugs} bug(s) filed`);
+  s.log.push(`${r.cwLabel}: ${g.name} ${r.version} pulled back from soft launch`);
 }

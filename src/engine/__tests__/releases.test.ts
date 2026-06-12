@@ -134,6 +134,8 @@ describe('rollout decisions', () => {
     const r = decidableRelease(s, s.games[0].id, 70);
     const s2 = applyAction(s, { type: 'fullRollout', releaseId: r.id });
     expect(s2.games[0].players).toBe(70 * NEW_GAME_SEED_PER_QUALITY);
+    // rpp/rating effects still apply on a seeding rollout
+    expect(s2.games[0].revenuePerPlayer).toBeGreaterThan(s.games[0].revenuePerPlayer);
   });
 
   it('pull back spawns bug tickets and returns impact to the pending pool', () => {
