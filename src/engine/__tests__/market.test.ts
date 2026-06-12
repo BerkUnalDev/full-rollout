@@ -37,9 +37,13 @@ describe('buyGame', () => {
     expect(starters.filter((t) => t.type === 'Story')).toHaveLength(2);
     expect(s2.market.offers.some((x) => x.id === o.id)).toBe(false);
   });
+
+  it('throws when cash is short', () => { const s = newGame(1); s.cash = 0; expect(() => applyAction(s, { type: 'buyGame', offerId: s.market.offers[0].id })).toThrow(); });
 });
 
 describe('startNewGame', () => {
+  it('throws when cash is short', () => { const s = newGame(1); s.cash = 0; expect(() => applyAction(s, { type: 'startNewGame', genre: 'Puzzle' })).toThrow(); });
+
   it('creates a 0-player game with a 1.0.0 story chain', () => {
     const s = newGame(1);
     const s2 = applyAction(s, { type: 'startNewGame', genre: 'Card' });

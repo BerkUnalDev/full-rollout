@@ -5,6 +5,7 @@ import { generateGameName } from './names';
 import { createTicket, effortFor, genId, genStoryConcept, genBugTitle } from './generators';
 import { GENRE_FIT, NEW_GAME_COST } from './constants';
 import { NEW_GAME_STORY_TITLES } from './data';
+import { acceptInboxItem, declineInboxItem } from './inbox';
 import type { GameState, Genre, PlanAction, PortfolioGame, Ticket } from './types';
 
 type Ctx = { s: GameState; rng: Rng };
@@ -148,4 +149,12 @@ handlers.startNewGame = ({ s, rng }, a: { genre: Genre }) => {
   }
   s.pendingEvents.push(`🌱 Started a new ${a.genre} game: ${name}`);
   s.log.push(`Started ${name} (${a.genre})`);
+};
+
+handlers.acceptInbox = ({ s }, a: { itemId: string }) => {
+  acceptInboxItem(s, a.itemId);
+};
+
+handlers.declineInbox = ({ s }, a: { itemId: string }) => {
+  declineInboxItem(s, a.itemId);
 };
