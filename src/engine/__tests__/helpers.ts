@@ -3,9 +3,7 @@ import { newGame } from '../newGame';
 import type { GameState, Role, TeamMember, Ticket } from '../types';
 
 export function makeState(seed = 1): GameState {
-  const s = newGame(seed);
-  s.team = [];
-  return s;
+  return newGame(seed);
 }
 
 export function addMember(s: GameState, role: Role, skill: number): TeamMember {

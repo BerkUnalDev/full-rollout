@@ -1,7 +1,7 @@
 // src/engine/__tests__/work.test.ts
 import { Rng } from '../rng';
 import { runDevPhase, runQaPhase } from '../work';
-import { QA_EFFORT_FRACTION, REWORK_FRACTION } from '../constants';
+import { REWORK_FRACTION } from '../constants';
 import { makeState, addMember, addTicket, assignTo } from './helpers';
 
 describe('runDevPhase', () => {
@@ -105,6 +105,7 @@ describe('runQaPhase', () => {
 
   it('a QA member only works one ticket per week', () => {
     const s = makeState();
+    s.team = s.team.filter((m) => m.role !== 'QA');
     addMember(s, 'QA', 5); // fast
     const t1 = addTicket(s, { status: 'AWAITING_QA', effortTotal: 2, hiddenBugs: 0 });
     const t2 = addTicket(s, { status: 'AWAITING_QA', effortTotal: 2, hiddenBugs: 0 });
