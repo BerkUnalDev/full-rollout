@@ -1,7 +1,8 @@
 // src/ui/screens/InboxScreen.tsx
 import { useDispatch, useGame } from '../store';
 import { cwLabel, FEATURE_CAP_PER_GAME } from '../../engine';
-import { signedPct } from '../format';
+import { FEATURING_ACCEPT_COST } from '../../engine/constants';
+import { fmtMoney, signedPct } from '../format';
 import type { InboxItem } from '../../engine';
 
 const KIND_EMOJI: Record<InboxItem['kind'], string> = {
@@ -35,7 +36,7 @@ export function InboxScreen() {
         )}
         {i.kind === 'opportunity' && (
           <p className="sub">
-            🎯 Reward: +{Math.round((i.rewardPlayersPct ?? 0) * 100)}% players if you full-roll {gameName(i.gameId)} by {i.deadlineWeek != null ? cwLabel(i.deadlineWeek) : '—'} · 💵 costs $1,500 to accept · ❌ miss = lose the boost (no penalty)
+            🎯 Reward: +{Math.round((i.rewardPlayersPct ?? 0) * 100)}% players if you full-roll {gameName(i.gameId)} by {i.deadlineWeek != null ? cwLabel(i.deadlineWeek) : '—'} · 💵 costs {fmtMoney(FEATURING_ACCEPT_COST)} to accept · ❌ miss = lose the boost (no penalty)
           </p>
         )}
         {i.deadlineWeek != null && i.kind !== 'opportunity' && <p>⏰ Deadline: {cwLabel(i.deadlineWeek)}</p>}
