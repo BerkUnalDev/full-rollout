@@ -30,14 +30,16 @@ describe('rollRequiredLevel', () => {
   it('post-grace stays within a clamped window around studioLevel', () => {
     const s = makeState();
     s.weekIndex = 20;
-    s.studioLevel = 5; // ceiling = 7, floor = 3
+    s.studioLevel = 5;
+    // week 20: timeFloor = 1 + floor((20-4)/10) = 2; floor = 2,
+    // ceiling = max(studioLevel+1=6, floor+SPAN-1=6) = 6
     const seen = new Set<number>();
     for (let i = 0; i < 500; i++) seen.add(rollRequiredLevel(s, new Rng(i)));
     const levels = [...seen];
-    expect(Math.min(...levels)).toBeGreaterThanOrEqual(3);
-    expect(Math.max(...levels)).toBeLessThanOrEqual(7);
+    expect(Math.min(...levels)).toBeGreaterThanOrEqual(2);
+    expect(Math.max(...levels)).toBeLessThanOrEqual(6);
     expect(Math.max(...levels) - Math.min(...levels)).toBeLessThanOrEqual(LEVEL_WINDOW_SPAN - 1);
-    expect(levels).toContain(3); // lower levels always present (skewed toward floor)
+    expect(levels).toContain(2); // floor always present (skewed toward floor)
   });
 
   it('never exceeds the cap even at high studio level', () => {
@@ -83,8 +85,8 @@ describe('rising floor (v2.1)', () => {
 
 describe('studioGameRequirement / roleCapacity', () => {
   it('game requirement by level', () => {
-    expect(studioGameRequirement(1)).toBe(3);
-    expect(studioGameRequirement(2)).toBe(5);
+    expect(studioGameRequirement(1)).toBe(2);
+    expect(studioGameRequirement(2)).toBe(3);
   });
   it('role capacity = base + level', () => {
     expect(roleCapacity('Developer', 1)).toBe(3);

@@ -3,14 +3,28 @@ import { Rng } from './rng';
 import {
   DECLINED_BUG_RATING_HIT, FEATURE_ACCESSIBLE_CHANCE, FEATURE_CAP_PER_GAME,
   FEATURING_ACCEPT_COST, FEATURING_DEADLINE_WEEKS, FEATURING_REWARD_PCT, GENRE_FIT,
-  INBOX_PER_WEEK, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT, TECHDEBT_FINE,
-  TECHDEBT_REFILL_CHANCE, TECH_INVEST_REVENUE_PCT,
+  INBOX_PER_WEEK, TECHDEBT_ACCESSIBLE_CHANCE, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT,
+  TECHDEBT_FINE, TECHDEBT_REFILL_CHANCE, TECH_INVEST_REVENUE_PCT,
 } from './constants';
 import { OPPORTUNITY_BODIES, TECHDEBT_INVESTMENT_TITLES, TECHDEBT_MANDATORY_TITLES } from './data';
 import { cwLabel } from './week';
 import { createTicket, genId, genStoryConcept, genBugTitle, effortFor } from './generators';
 import { rollRequiredLevel } from './studio';
 import type { GameState, InboxItem, InboxItemKind, TechSubtype } from './types';
+
+/** Ensure a freshly-generated ticket/inbox title doesn't duplicate one that's
+ *  already open (pending inbox item or non-DONE ticket); suffix " (2)", " (3)"… */
+function uniqueTitle(s: GameState, base: string): string {
+  const taken = new Set<string>([
+    ...s.inbox.filter((i) => i.status === 'pending').map((i) => i.title),
+    ...s.tickets.filter((t) => t.status !== 'DONE').map((t) => t.title),
+  ]);
+  if (!taken.has(base)) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base} (${n})`;
+    if (!taken.has(candidate)) return candidate;
+  }
+}
 
 /** Create one inbox item of the given kind for a random (or given) game. */
 export function generateInboxItem(
@@ -47,7 +61,7 @@ export function generateInboxItem(
       ratingBonus: Math.round(predicted.ratingBonus * rng.range(0.5, 1.4) * 100) / 100,
     };
     return {
-      ...base, kind, title: `${game!.name} - ${title}`,
+      ...base, kind, title: uniqueTitle(s, `${game!.name} - ${title}`),
       body: `Players are asking for it. Predicted: +${predicted.revenuePct}% revenue.`,
       predictedImpact: predicted, actualImpact: actual, tags: [tag],
       effort: effortFor(rng, 'Story'),
@@ -57,7 +71,7 @@ export function generateInboxItem(
   if (kind === 'bug') {
     const title = genBugTitle(rng);
     return {
-      ...base, kind, title: `${game!.name} - ${title}`,
+      ...base, kind, title: uniqueTitle(s, `${game!.name} - ${title}`),
       body: 'Players are reporting this in reviews. Ignoring it will hurt the rating.',
       effort: effortFor(rng, 'Bug'),
     };
@@ -74,13 +88,13 @@ export function generateInboxItem(
   }
   // techdebt (studio-wide; replaces the old per-game SDK task)
   const subtype: TechSubtype = forcedSubtype ?? (rng.next() < 0.55 ? 'mandatory' : 'investment');
-  const requiredLevel = rollRequiredLevel(s, rng);
+  const requiredLevel = rollRequiredLevel(s, rng, TECHDEBT_ACCESSIBLE_CHANCE);
   const effort = rng.int(TECHDEBT_EFFORT[0], TECHDEBT_EFFORT[1]);
   const deadlineWeek = s.weekIndex + TECHDEBT_DEADLINE_WEEKS;
   if (subtype === 'mandatory') {
     return {
       ...base, gameId: '', kind: 'techdebt', techSubtype: 'mandatory', requiredLevel,
-      title: rng.pick(TECHDEBT_MANDATORY_TITLES),
+      title: uniqueTitle(s, rng.pick(TECHDEBT_MANDATORY_TITLES)),
       body: `Compliance work for the whole studio. Ship by ${cwLabel(deadlineWeek)} or pay a $${TECHDEBT_FINE.toLocaleString('en-US')} fine. A junior dev may botch it even on time.`,
       deadlineWeek, fineUsd: TECHDEBT_FINE, effort,
     };
@@ -88,7 +102,7 @@ export function generateInboxItem(
   const benefitRevenuePct = Math.round(rng.range(TECH_INVEST_REVENUE_PCT[0], TECH_INVEST_REVENUE_PCT[1]) * 10) / 10;
   return {
     ...base, gameId: '', kind: 'techdebt', techSubtype: 'investment', requiredLevel,
-    title: rng.pick(TECHDEBT_INVESTMENT_TITLES),
+    title: uniqueTitle(s, rng.pick(TECHDEBT_INVESTMENT_TITLES)),
     body: `Engineering upgrade. Ship by ${cwLabel(deadlineWeek)} → permanent +${benefitRevenuePct}% revenue on every game; miss it → $${TECHDEBT_FINE.toLocaleString('en-US')} fine. A junior dev may botch it.`,
     benefitRevenuePct, deadlineWeek, fineUsd: TECHDEBT_FINE, effort,
   };
@@ -182,9 +196,14 @@ export function checkDeadlines(s: GameState): void {
     if (!past) continue;
     if (item.kind === 'techdebt' &&
         (item.status === 'pending' || item.status === 'declined')) {
-      s.cash -= item.fineUsd!;
-      s.pendingDeltas.push({ label: `Missed deadline: ${item.title}`, amount: -item.fineUsd! });
-      s.pendingEvents.push(`🚨 Missed ${item.title} deadline — fined $${item.fineUsd!.toLocaleString('en-US')}`);
+      // Only fine work the player could actually have accepted. A tech-debt item
+      // gated above the current studio level is impossible to take, so it just
+      // expires — no fine for something you were never allowed to do.
+      if ((item.requiredLevel ?? 1) <= s.studioLevel) {
+        s.cash -= item.fineUsd!;
+        s.pendingDeltas.push({ label: `Missed deadline: ${item.title}`, amount: -item.fineUsd! });
+        s.pendingEvents.push(`🚨 Missed ${item.title} deadline — fined $${item.fineUsd!.toLocaleString('en-US')}`);
+      }
       item.status = 'done';
     } else if (item.kind === 'opportunity' && (item.status === 'pending' || item.status === 'accepted')) {
       item.status = 'done';

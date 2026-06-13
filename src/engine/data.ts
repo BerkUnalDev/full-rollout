@@ -35,12 +35,12 @@ export const PERSON_LAST = [
 ] as const;
 
 export const STORY_TEMPLATES: Record<FeatureTag, readonly string[]> = {
-  levels: ['Add 50 new levels', 'New level pack: Tropical', 'Hard mode level set'],
-  social: ['Add team chests', 'Friend leaderboards', 'Co-op weekend mode'],
-  monetization: ['Introduce starter bundle', 'Piggy bank offer', 'Remove-ads upsell revamp'],
-  meta: ['Season pass meta layer', 'Collection album feature', 'Daily quest system'],
-  polish: ['Rework win animations', 'New particle effects', 'Haptics & juice pass'],
-  events: ['Halloween event', 'Summer beach event', 'Weekly tournament event'],
+  levels: ['Add 50 new levels', 'New level pack: Tropical', 'Hard mode level set', 'Boss levels update', 'Endless mode', 'Level editor beta'],
+  social: ['Add team chests', 'Friend leaderboards', 'Co-op weekend mode', 'Guilds & clubs', 'Gifting system', 'Spectator mode'],
+  monetization: ['Introduce starter bundle', 'Piggy bank offer', 'Remove-ads upsell revamp', 'Battle pass', 'VIP subscription', 'Flash sale system'],
+  meta: ['Season pass meta layer', 'Collection album feature', 'Daily quest system', 'Prestige system', 'Town-building meta', 'Card collection meta'],
+  polish: ['Rework win animations', 'New particle effects', 'Haptics & juice pass', 'New main menu', 'Dark mode theme', 'Onboarding polish'],
+  events: ['Halloween event', 'Summer beach event', 'Weekly tournament event', 'Lunar New Year event', 'Anniversary event', 'Winter holidays event'],
 };
 
 export const BUG_TITLES = [
@@ -50,6 +50,14 @@ export const BUG_TITLES = [
   'Fix daily reward double-claim',
   'Fix tutorial softlock',
   'Fix audio stutter on resume',
+  'Fix leaderboard not refreshing',
+  'Fix purchase restore failing',
+  'Fix black screen on resume',
+  'Fix memory leak in long sessions',
+  'Fix notifications not firing',
+  'Fix save sync conflict',
+  'Fix UI overlap on small screens',
+  'Fix energy timer drift',
 ] as const;
 
 export const OPPORTUNITY_BODIES = [
