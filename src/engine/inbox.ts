@@ -1,9 +1,10 @@
 // src/engine/inbox.ts
 import { Rng } from './rng';
 import {
-  DECLINED_BUG_RATING_HIT, FEATURING_DEADLINE_WEEKS, FEATURING_REWARD_PCT,
-  GENRE_FIT, INBOX_PER_WEEK, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT,
-  TECHDEBT_FINE, TECH_INVEST_REVENUE_PCT,
+  DECLINED_BUG_RATING_HIT, FEATURE_ACCESSIBLE_CHANCE, FEATURE_CAP_PER_GAME,
+  FEATURING_ACCEPT_COST, FEATURING_DEADLINE_WEEKS, FEATURING_REWARD_PCT, GENRE_FIT,
+  INBOX_PER_WEEK, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT, TECHDEBT_FINE,
+  TECHDEBT_REFILL_CHANCE, TECH_INVEST_REVENUE_PCT,
 } from './constants';
 import { OPPORTUNITY_BODIES, TECHDEBT_INVESTMENT_TITLES, TECHDEBT_MANDATORY_TITLES } from './data';
 import { cwLabel } from './week';
@@ -43,7 +44,7 @@ export function generateInboxItem(
       body: `Players are asking for it. Predicted: +${predicted.revenuePct}% revenue.`,
       predictedImpact: predicted, actualImpact: actual, tags: [tag],
       effort: effortFor(rng, 'Story'),
-      requiredLevel: rollRequiredLevel(s, rng),
+      requiredLevel: rollRequiredLevel(s, rng, FEATURE_ACCESSIBLE_CHANCE),
     };
   }
   if (kind === 'bug') {
@@ -68,8 +69,8 @@ export function generateInboxItem(
   const subtype: TechSubtype = forcedSubtype ?? (rng.next() < 0.55 ? 'mandatory' : 'investment');
   const requiredLevel = rollRequiredLevel(s, rng);
   const effort = rng.int(TECHDEBT_EFFORT[0], TECHDEBT_EFFORT[1]);
+  const deadlineWeek = s.weekIndex + TECHDEBT_DEADLINE_WEEKS;
   if (subtype === 'mandatory') {
-    const deadlineWeek = s.weekIndex + TECHDEBT_DEADLINE_WEEKS;
     return {
       ...base, gameId: '', kind: 'techdebt', techSubtype: 'mandatory', requiredLevel,
       title: rng.pick(TECHDEBT_MANDATORY_TITLES),
@@ -81,8 +82,8 @@ export function generateInboxItem(
   return {
     ...base, gameId: '', kind: 'techdebt', techSubtype: 'investment', requiredLevel,
     title: rng.pick(TECHDEBT_INVESTMENT_TITLES),
-    body: `Optional engineering investment. Ships → permanent +${benefitRevenuePct}% revenue on every game you own. A junior dev may botch it.`,
-    benefitRevenuePct, effort,
+    body: `Engineering upgrade. Ship by ${cwLabel(deadlineWeek)} → permanent +${benefitRevenuePct}% revenue on every game; miss it → $${TECHDEBT_FINE.toLocaleString('en-US')} fine. A junior dev may botch it.`,
+    benefitRevenuePct, deadlineWeek, fineUsd: TECHDEBT_FINE, effort,
   };
 }
 
@@ -110,6 +111,10 @@ export function acceptInboxItem(s: GameState, itemId: string): void {
     });
   }
   // opportunities are just tracked; payout happens on full rollout (releases.ts)
+  if (item.kind === 'opportunity') {
+    s.cash -= FEATURING_ACCEPT_COST;
+    s.pendingDeltas.push({ label: `Featuring fee: ${item.title}`, amount: -FEATURING_ACCEPT_COST });
+  }
   item.status = 'accepted';
 }
 
@@ -118,6 +123,7 @@ export function declineInboxItem(s: GameState, itemId: string): void {
   const item = s.inbox.find((i) => i.id === itemId);
   if (!item) throw new Error('No such inbox item');
   if (item.status !== 'pending') throw new Error('Already handled');
+  if (item.kind === 'techdebt') throw new Error("Tech debt can't be declined — it must be handled");
   if (item.kind === 'bug') {
     const g = s.games.find((x) => x.id === item.gameId)!;
     g.declinedBugs += 1;
@@ -129,11 +135,16 @@ export function declineInboxItem(s: GameState, itemId: string): void {
 
 /** Mutates s: 1-3 new events for the new week. At most one mandatory tech-debt chore in flight. */
 export function generateWeeklyInbox(s: GameState, rng: Rng): void {
+  const featureCap = s.games.length * FEATURE_CAP_PER_GAME;
   const count = rng.int(INBOX_PER_WEEK[0], INBOX_PER_WEEK[1]);
   for (let i = 0; i < count; i++) {
     const roll = rng.next();
-    const kind: InboxItemKind =
-      roll < 0.45 ? 'feature' : roll < 0.75 ? 'bug' : roll < 0.9 ? 'opportunity' : 'techdebt';
+    let kind: InboxItemKind =
+      roll < 0.42 ? 'feature' : roll < 0.70 ? 'bug' : roll < 0.82 ? 'opportunity' : 'techdebt';
+    // Feature inbox is capped at games × FEATURE_CAP_PER_GAME; overflow becomes a bug.
+    if (kind === 'feature' && s.inbox.filter((it) => it.kind === 'feature' && it.status === 'pending').length >= featureCap) {
+      kind = 'bug';
+    }
     const mandatoryActive =
       s.inbox.some((it) => it.kind === 'techdebt' && it.techSubtype === 'mandatory' &&
         (it.status === 'pending' || it.status === 'accepted')) ||
@@ -144,6 +155,13 @@ export function generateWeeklyInbox(s: GameState, rng: Rng): void {
     } else {
       s.inbox.push(generateInboxItem(s, rng, kind));
     }
+  }
+  // Cadence guarantee: if no tech-debt is pending or in-flight, likely inject one.
+  const techActive =
+    s.inbox.some((it) => it.kind === 'techdebt' && it.status === 'pending') ||
+    s.tickets.some((t) => t.type === 'Tech Debt' && t.status !== 'DONE');
+  if (!techActive && rng.chance(TECHDEBT_REFILL_CHANCE)) {
+    s.inbox.push(generateInboxItem(s, rng, 'techdebt'));
   }
 }
 
