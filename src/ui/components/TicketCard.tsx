@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useGame } from '../store';
 import { cwLabel } from '../../engine';
-import { initials } from '../format';
+import { initials, gameLogo } from '../format';
 import type { Ticket } from '../../engine';
 
 const TYPE_META: Record<Ticket['type'], { cls: string; letter: string }> = {
@@ -39,6 +39,7 @@ export function TicketCard({ t, onOpen }: { t: Ticket; onOpen: (k: string) => vo
       <div className="title">{t.title}</div>
       <div className="meta">
         <span className={`type-icon ${meta.cls}`}>{meta.letter}</span>
+        <span className="game-logo" title="game">{t.gameId ? gameLogo(t.gameId) : '🏢'}</span>
         <span className="key">{t.key}</span>
         {t.deadlineWeek !== null && <span className="chip warn">⏰ {cwLabel(t.deadlineWeek)}</span>}
         {lockedInRelease && t.status === 'QA_COMPLETE' && <span className="chip locked">📦 in release</span>}
