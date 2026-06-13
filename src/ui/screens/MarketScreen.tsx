@@ -1,7 +1,8 @@
 // src/ui/screens/MarketScreen.tsx
 import { useState } from 'react';
 import { useDispatch, useGame } from '../store';
-import { GENRES, NEW_GAME_COST, STUDIO_LEVEL_CAP, maxGamesFor, nextUpgradeCost } from '../../engine';
+import { GENRES, NEW_GAME_COST, STUDIO_LEVEL_CAP, maxGamesFor, nextUpgradeCost, studioGameRequirement } from '../../engine';
+import { SELL_PRICE_FLOOR, SELL_PRICE_WEEKS } from '../../engine/constants';
 import { fmtMoney, fmtPlayers, stars } from '../format';
 import type { Genre } from '../../engine';
 
@@ -25,20 +26,57 @@ export function MarketScreen() {
           {upgradeCost === null ? (
             <span className="sub">Maxed out at Level {STUDIO_LEVEL_CAP} 🎉</span>
           ) : (
-            <>
-              <span className="sub">Next: Level {s.studioLevel + 1} → up to {maxGamesFor(s.studioLevel + 1)} games</span>
-              <span className="right">
-                <button
-                  className="btn blue"
-                  disabled={s.cash < upgradeCost || s.status !== 'playing'}
-                  onClick={() => d.act({ type: 'upgradeStudio' })}
-                >
-                  Upgrade ({fmtMoney(upgradeCost)})
-                </button>
-              </span>
-            </>
+            (() => {
+              const gamesReq = studioGameRequirement(s.studioLevel);
+              const needGames = s.games.length < gamesReq;
+              const canAfford = s.cash >= upgradeCost;
+              return (
+                <>
+                  <span className="sub">
+                    Next: Level {s.studioLevel + 1} → up to {maxGamesFor(s.studioLevel + 1)} games · needs {gamesReq} games (have {s.games.length})
+                  </span>
+                  <span className="right">
+                    <button
+                      className="btn blue"
+                      disabled={needGames || !canAfford || s.status !== 'playing'}
+                      title={needGames ? `Own ${gamesReq} games first` : (!canAfford ? 'Not enough cash' : '')}
+                      onClick={() => d.act({ type: 'upgradeStudio' })}
+                    >
+                      Upgrade ({fmtMoney(upgradeCost)})
+                    </button>
+                  </span>
+                </>
+              );
+            })()
           )}
         </div>
+      </div>
+
+      <div className="panel">
+        <h3>Your games</h3>
+        <p className="sub">Sell a title for a one-off cash injection (≈{SELL_PRICE_WEEKS}× its weekly revenue). You can't sell a game mid-release.</p>
+        {s.games.map((g) => {
+          const weekly = Math.round(g.players * g.revenuePerPlayer);
+          const price = Math.max(SELL_PRICE_FLOOR, Math.round(weekly * SELL_PRICE_WEEKS));
+          const inFlight = s.releases.some((r) => r.gameId === g.id && r.status !== 'decided');
+          return (
+            <div className="row" key={g.id} style={{ padding: '8px 0' }}>
+              <strong>{g.name}</strong>
+              <span className="sub">{fmtMoney(weekly)}/wk</span>
+              <span className="right">
+                <button
+                  className="btn red"
+                  disabled={inFlight || s.status !== 'playing'}
+                  title={inFlight ? 'Finish the in-flight release first' : ''}
+                  onClick={() => { if (window.confirm(`Sell ${g.name} for ${fmtMoney(price)}? Its tickets are removed.`)) d.act({ type: 'sellGame', gameId: g.id }); }}
+                >
+                  Sell ({fmtMoney(price)})
+                </button>
+              </span>
+            </div>
+          );
+        })}
+        {s.games.length === 0 && <p className="sub">You don't own any games yet.</p>}
       </div>
 
       <div className="panel">
