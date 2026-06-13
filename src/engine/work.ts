@@ -11,7 +11,7 @@ import type { GameState } from './types';
 /** Mutates s: every assigned developer applies one week of work. */
 export function runDevPhase(s: GameState, rng: Rng): void {
   for (const m of s.team) {
-    if (m.role !== 'Developer' || !m.ticketKey) continue;
+    if (m.role !== 'Developer' || !m.ticketKey || (m.outWeeks && m.outWeeks > 0)) continue;
     const t = s.tickets.find((x) => x.key === m.ticketKey);
     if (!t || t.status !== 'IN_DEVELOPMENT') {
       m.ticketKey = null;
@@ -64,7 +64,7 @@ export function runDevPhase(s: GameState, rng: Rng): void {
  *  takes stays hidden from the UI. */
 export function runQaPhase(s: GameState, rng: Rng): void {
   for (const qa of s.team) {
-    if (qa.role !== 'QA' || !qa.ticketKey) continue;
+    if (qa.role !== 'QA' || !qa.ticketKey || (qa.outWeeks && qa.outWeeks > 0)) continue;
     const t = s.tickets.find((x) => x.key === qa.ticketKey);
     if (!t || t.status !== 'IN_QA') {
       qa.ticketKey = null;

@@ -120,3 +120,7 @@ export const SELL_PRICE_WEEKS = 18;
 export const SELL_PRICE_FLOOR = 500;
 export const FEATURE_CAP_PER_GAME = 5; // feature inbox cap = games × this
 export const TECHDEBT_REFILL_CHANCE = 0.6; // weekly chance to inject tech-debt when none active
+
+// v2.2 — disruption events
+export const DISRUPTION_CHANCE = 0.18; // weekly chance a disruption strikes
+export const DISRUPTION_WEEKS: readonly [number, number] = [1, 3];

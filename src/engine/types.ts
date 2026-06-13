@@ -24,6 +24,7 @@ export interface TeamMember {
   skill: number; // 1-5
   salary: number; // $ per week
   ticketKey: string | null; // current assignment (Developer/QA only)
+  outWeeks?: number; // >0 = unavailable (vacation/sick) for this many weeks
 }
 
 export interface HireCandidate {
@@ -70,6 +71,7 @@ export interface PortfolioGame {
   lastRolloutWeek: number; // absolute weekIndex of last full rollout (may be negative)
   pendingImpact: Impact; // impact returned by pull-backs, re-carried by next cut
   declinedBugs: number; // escalation counter for ignored bug reports
+  outageWeeks?: number; // >0 = servers down, $0 revenue for this many weeks
 }
 
 export interface ReportCard {

@@ -27,9 +27,17 @@ function Shell() {
   const [showReport, setShowReport] = useState(false);
   const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(HELP_KEY));
 
+  const disruptions = [
+    ...s.games.filter((g) => (g.outageWeeks ?? 0) > 0).map((g) => `🔌 ${g.name} outage (${g.outageWeeks}w)`),
+    ...s.team.filter((m) => (m.outWeeks ?? 0) > 0).map((m) => `🌴 ${m.name} out (${m.outWeeks}w)`),
+  ];
+
   return (
     <div className="app">
       <TopBar onEndWeek={() => { d.week(); setShowReport(true); }} />
+      {disruptions.length > 0 && (
+        <div className="disruption-banner">🚨 {disruptions.join('  ·  ')}</div>
+      )}
       <div className="body">
         <Sidebar
           screen={screen} setScreen={setScreen}

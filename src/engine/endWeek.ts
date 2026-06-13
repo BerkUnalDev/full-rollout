@@ -6,6 +6,7 @@ import { arriveReports, shipCuttingReleases } from './releases';
 import { runEconomy } from './economy';
 import { checkDeadlines, generateWeeklyInbox } from './inbox';
 import { refreshMarket } from './generators';
+import { runDisruptions } from './disruptions';
 import { REPORT_HISTORY_CAP } from './constants';
 import type { GameState } from './types';
 
@@ -31,6 +32,7 @@ export function endWeek(state: GameState): GameState {
   checkDeadlines(s);            // 7. fines & expiries
   generateWeeklyInbox(s, rng);  // 8. fresh requests
   refreshMarket(s, rng);        // 9. fresh candidates & offers
+  runDisruptions(s, rng);       // 10. outages / staff out — tick down + maybe strike
 
   if (s.cash < 0) {
     s.status = 'bankrupt';
