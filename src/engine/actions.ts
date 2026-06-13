@@ -3,8 +3,8 @@ import { Rng } from './rng';
 import { applyFullRollout, applyPullBack, performCut } from './releases';
 import { generateGameName } from './names';
 import { createTicket, effortFor, genId, genStoryConcept, genBugTitle } from './generators';
-import { GENRE_FIT, NEW_GAME_COST, QA_EFFORT_FRACTION } from './constants';
-import { maxGamesFor, nextUpgradeCost } from './studio';
+import { GENRE_FIT, NEW_GAME_COST, QA_EFFORT_FRACTION, SELL_PRICE_FLOOR, SELL_PRICE_WEEKS, SEVERANCE_WEEKS } from './constants';
+import { maxGamesFor, nextUpgradeCost, roleCapacity, studioGameRequirement } from './studio';
 import { NEW_GAME_STORY_TITLES } from './data';
 import { acceptInboxItem, declineInboxItem } from './inbox';
 import type { GameState, Genre, PlanAction, PortfolioGame, Ticket } from './types';
@@ -106,6 +106,10 @@ handlers.pullBack = ({ s, rng }, a: { releaseId: string }) => {
 handlers.hire = ({ s }, a: { candidateId: string }) => {
   const c = s.market.candidates.find((x) => x.id === a.candidateId);
   if (!c) throw new Error('No such candidate');
+  const roleCount = s.team.filter((m) => m.role === c.role).length;
+  if (roleCount >= roleCapacity(c.role, s.studioLevel)) {
+    throw new Error(`At ${c.role} capacity — upgrade the studio to hire more`);
+  }
   if (s.cash < c.signingFee) throw new Error('Not enough cash for the signing fee');
   s.cash -= c.signingFee;
   s.pendingDeltas.push({ label: `Signing fee: ${c.name}`, amount: -c.signingFee });
@@ -191,10 +195,50 @@ handlers.declineInbox = ({ s }, a: { itemId: string }) => {
 handlers.upgradeStudio = ({ s }) => {
   const cost = nextUpgradeCost(s.studioLevel);
   if (cost === null) throw new Error('Studio is already at max level');
+  const req = studioGameRequirement(s.studioLevel);
+  if (s.games.length < req) throw new Error(`Need ${req} games to upgrade — you have ${s.games.length}`);
   if (s.cash < cost) throw new Error('Not enough cash to upgrade the studio');
   s.cash -= cost;
   s.pendingDeltas.push({ label: `Studio upgrade → Lv ${s.studioLevel + 1}`, amount: -cost });
   s.studioLevel += 1;
   s.pendingEvents.push(`🏢 Studio upgraded to Level ${s.studioLevel} — up to ${maxGamesFor(s.studioLevel)} games`);
   s.log.push(`Studio reached Level ${s.studioLevel}`);
+};
+
+handlers.fireMember = ({ s }, a: { memberId: string }) => {
+  const m = s.team.find((x) => x.id === a.memberId);
+  if (!m) throw new Error('No such team member');
+  if (m.ticketKey) {
+    const t = s.tickets.find((x) => x.key === m.ticketKey);
+    if (t) { t.assigneeId = null; returnToQueue(t); }
+    m.ticketKey = null;
+  }
+  const severance = m.salary * SEVERANCE_WEEKS;
+  s.cash -= severance;
+  s.pendingDeltas.push({ label: `Severance: ${m.name}`, amount: -severance });
+  s.team = s.team.filter((x) => x.id !== m.id);
+  s.pendingEvents.push(`👋 Let ${m.name} go (${m.role}) — severance $${severance.toLocaleString('en-US')}`);
+};
+
+handlers.sellGame = ({ s }, a: { gameId: string }) => {
+  const g = s.games.find((x) => x.id === a.gameId);
+  if (!g) throw new Error('No such game');
+  if (s.releases.some((r) => r.gameId === g.id && r.status !== 'decided')) {
+    throw new Error('Finish the in-flight release before selling this game');
+  }
+  const weekly = Math.round(g.players * g.revenuePerPlayer);
+  const price = Math.max(SELL_PRICE_FLOOR, Math.round(weekly * SELL_PRICE_WEEKS));
+  s.cash += price;
+  s.pendingDeltas.push({ label: `Sold ${g.name}`, amount: price });
+  s.games = s.games.filter((x) => x.id !== g.id);
+  s.tickets = s.tickets.filter((t) => t.gameId !== g.id);
+  for (const m of s.team) {
+    if (m.ticketKey && !s.tickets.some((t) => t.key === m.ticketKey)) m.ticketKey = null;
+  }
+  s.pendingEvents.push(`💰 Sold ${g.name} for $${price.toLocaleString('en-US')}`);
+  s.log.push(`Sold ${g.name} for $${price.toLocaleString('en-US')}`);
+};
+
+handlers.dismissCelebration = ({ s }) => {
+  s.celebration = null;
 };

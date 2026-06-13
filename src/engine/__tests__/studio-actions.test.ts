@@ -7,6 +7,8 @@ import { STUDIO_LEVEL_CAP } from '../constants';
 describe('upgradeStudio', () => {
   it('deducts cash, raises level instantly, logs a delta', () => {
     const s = newGame(1);
+    // New precondition: need 3 games to go L1→L2; newGame starts with 2.
+    s.games.push({ ...s.games[0], id: 'g-extra', name: 'Extra' });
     const cost = nextUpgradeCost(s.studioLevel)!;
     const s2 = applyAction(s, { type: 'upgradeStudio' });
     expect(s2.studioLevel).toBe(2);
