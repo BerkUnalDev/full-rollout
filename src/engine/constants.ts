@@ -60,8 +60,6 @@ export const SALARY_BY_SKILL: Record<Role, readonly number[]> = {
 
 // Inbox
 export const INBOX_PER_WEEK: readonly [number, number] = [1, 3];
-export const SDK_FINE = 4_000;
-export const SDK_DEADLINE_WEEKS = 3;
 export const FEATURING_REWARD_PCT = 0.25;
 export const FEATURING_DEADLINE_WEEKS: readonly [number, number] = [3, 5];
 export const DECLINED_BUG_RATING_HIT = 0.08; // × (declinedBugs so far + 1)
