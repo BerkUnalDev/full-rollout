@@ -35,7 +35,7 @@ export function canCutRelease(
   const included = qaCompleteFor(s, gameId);
   if (included.length === 0) return { ok: false, reason: 'No QA-complete tickets for this game' };
   const rmCapacity = s.team
-    .filter((m) => m.role === 'Release Manager')
+    .filter((m) => m.role === 'Release Manager' && !(m.outWeeks && m.outWeeks > 0))
     .reduce((a, m) => a + m.skill, 0);
   const cutting = s.releases.filter((r) => r.status === 'cutting').length;
   if (cutting >= rmCapacity) return { ok: false, reason: 'Release managers are at capacity this week' };

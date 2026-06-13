@@ -53,6 +53,7 @@ handlers.assign = ({ s }, a: { ticketKey: string; memberId: string }) => {
   const t = getTicket(s, a.ticketKey);
   const m = s.team.find((x) => x.id === a.memberId);
   if (!m) throw new Error('No such team member');
+  if (m.outWeeks && m.outWeeks > 0) throw new Error(`${m.name} is out for ${m.outWeeks} more week(s)`);
   if (t.type === 'Release Ticket') throw new Error('Release tickets are handled by RMs');
   if (m.role === 'Developer') {
     if (t.status !== 'TODO' && t.status !== 'IN_DEVELOPMENT') {

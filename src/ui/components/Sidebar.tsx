@@ -45,7 +45,9 @@ export function Sidebar({ screen, setScreen, gameFilter, setGameFilter }: Props)
         All games
       </button>
       {s.games.map((g) => {
+        const hasOpenBug = s.tickets.some((t) => t.gameId === g.id && t.type === 'Bug' && t.status !== 'DONE');
         const stale = s.weekIndex - g.lastRolloutWeek > DECAY_GRACE_WEEKS && g.players > 0;
+        const outage = (g.outageWeeks ?? 0) > 0;
         return (
           <button
             key={g.id}
@@ -53,7 +55,10 @@ export function Sidebar({ screen, setScreen, gameFilter, setGameFilter }: Props)
             onClick={() => { setGameFilter(g.id); setScreen('board'); }}
           >
             <span className="game-logo">{gameLogo(g.id)}</span>
-            {g.name} {stale ? '🔻' : ''}
+            {g.name}
+            {hasOpenBug ? <span title="open bug hurting this game"> 🔻</span> : null}
+            {stale ? <span title="no rollout in a while — players decaying"> 💤</span> : null}
+            {outage ? <span title="server outage — no revenue"> 🔌</span> : null}
             <span className="muted">{g.players > 0 ? fmtPlayers(g.players) : 'dev'}</span>
           </button>
         );

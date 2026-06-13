@@ -24,7 +24,9 @@ export function TeamScreen() {
                 <td>{'⭐'.repeat(m.skill)}</td>
                 <td className="sub">{memberStats(m.role, m.skill).join(' · ')}</td>
                 <td className="num">{fmtMoney(m.salary)}</td>
-                <td>{m.ticketKey ?? <span className="sub">—</span>}</td>
+                <td>{m.outWeeks && m.outWeeks > 0
+                  ? <span className="chip warn">🌴 out {m.outWeeks}w</span>
+                  : (m.ticketKey ?? <span className="sub">—</span>)}</td>
                 <td className="num">
                   <button
                     className="btn red"

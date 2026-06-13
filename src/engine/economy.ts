@@ -8,7 +8,7 @@ import type { GameState } from './types';
 /** Mutates s: weekly revenue, staleness decay, payroll. Pushes deltas. */
 export function runEconomy(s: GameState): void {
   for (const g of s.games) {
-    const rev = Math.round(g.players * g.revenuePerPlayer);
+    const rev = g.outageWeeks && g.outageWeeks > 0 ? 0 : Math.round(g.players * g.revenuePerPlayer);
     if (rev > 0) {
       s.cash += rev;
       s.pendingDeltas.push({ label: `${g.name} revenue`, amount: rev });

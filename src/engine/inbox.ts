@@ -190,6 +190,15 @@ export function generateWeeklyInbox(s: GameState, rng: Rng): void {
 
 /** Mutates s: tech-debt fines and opportunity expiry. Run after the week advances. */
 export function checkDeadlines(s: GameState): void {
+  // Featuring is one-shot: an opportunity must be accepted the week it appears.
+  // checkDeadlines runs after the week advanced, so any still-pending opportunity
+  // had its single week and is now gone.
+  for (const item of s.inbox) {
+    if (item.kind === 'opportunity' && item.status === 'pending') {
+      item.status = 'done';
+      s.pendingEvents.push(`⌛ Passed on the featuring offer for ${s.games.find((g) => g.id === item.gameId)?.name ?? 'a game'}`);
+    }
+  }
   for (const item of s.inbox) {
     if (item.deadlineWeek == null) continue;
     const past = item.deadlineWeek < s.weekIndex;

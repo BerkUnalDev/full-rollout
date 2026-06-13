@@ -204,3 +204,9 @@ select.assign {
 /* v2.1: dual inbox badge + game logo */
 .badge.tech { background: var(--yellow); color: #5b4300; }
 .game-logo { font-size: 14px; flex-shrink: 0; }
+
+/* v2.2: disruption banner */
+.disruption-banner {
+  background: #fff0b3; color: #7f5f01; border-bottom: 1px solid var(--line);
+  padding: 6px 16px; font-size: 13px; font-weight: 600; flex-shrink: 0;
+}

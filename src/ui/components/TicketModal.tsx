@@ -11,7 +11,7 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
   const devPhase = t.status === 'TODO' || t.status === 'IN_DEVELOPMENT';
   const qaPhase = t.status === 'AWAITING_QA' || t.status === 'IN_QA';
   const assignable = t.type !== 'Release Ticket' && (devPhase || qaPhase);
-  const pool = s.team.filter((m) => m.role === (devPhase ? 'Developer' : 'QA'));
+  const pool = s.team.filter((m) => m.role === (devPhase ? 'Developer' : 'QA') && !(m.outWeeks && m.outWeeks > 0));
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
