@@ -138,6 +138,10 @@ export function applyFullRollout(s: GameState, releaseId: string): void {
       item.status = 'done';
       s.pendingEvents.push(`🌟 ${g.name} got featured — players spiked!`);
       s.log.push(`${r.cwLabel}: ${g.name} featured by the platform`);
+      s.celebration = {
+        title: `${g.name} got featured! 🎉`,
+        body: `The platform spotlight gave ${g.name} a +${Math.round((item.rewardPlayersPct ?? 0) * 100)}% player spike.`,
+      };
     }
   }
 }

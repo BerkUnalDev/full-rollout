@@ -81,6 +81,16 @@ describe('deadlines', () => {
     checkDeadlines(s);
     expect(s.inbox.find((i) => i.id === item.id)!.status).toBe('done');
   });
+
+  it('fines a missed investment tech-debt at its deadline', () => {
+    const s = makeState();
+    const item = generateInboxItem(s, new Rng(11), 'techdebt', undefined, 'investment');
+    s.inbox.push(item);
+    s.weekIndex = item.deadlineWeek! + 1;
+    const cash = s.cash;
+    checkDeadlines(s);
+    expect(s.cash).toBeLessThan(cash); // fined even though it's "investment"
+  });
 });
 
 describe('generateWeeklyInbox', () => {

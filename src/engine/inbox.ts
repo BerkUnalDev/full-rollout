@@ -171,11 +171,11 @@ export function checkDeadlines(s: GameState): void {
     if (item.deadlineWeek == null) continue;
     const past = item.deadlineWeek < s.weekIndex;
     if (!past) continue;
-    if (item.kind === 'techdebt' && item.techSubtype === 'mandatory' &&
+    if (item.kind === 'techdebt' &&
         (item.status === 'pending' || item.status === 'declined')) {
       s.cash -= item.fineUsd!;
-      s.pendingDeltas.push({ label: `Compliance fine: ${item.title}`, amount: -item.fineUsd! });
-      s.pendingEvents.push(`🚨 Missed compliance deadline — fined $${item.fineUsd!.toLocaleString('en-US')}`);
+      s.pendingDeltas.push({ label: `Missed deadline: ${item.title}`, amount: -item.fineUsd! });
+      s.pendingEvents.push(`🚨 Missed ${item.title} deadline — fined $${item.fineUsd!.toLocaleString('en-US')}`);
       item.status = 'done';
     } else if (item.kind === 'opportunity' && (item.status === 'pending' || item.status === 'accepted')) {
       item.status = 'done';
@@ -184,13 +184,13 @@ export function checkDeadlines(s: GameState): void {
   }
   for (const t of s.tickets) {
     if (
-      t.type === 'Tech Debt' && t.techSubtype === 'mandatory' && t.deadlineWeek !== null &&
+      t.type === 'Tech Debt' && t.deadlineWeek !== null &&
       t.deadlineWeek < s.weekIndex && t.status !== 'DONE'
     ) {
       s.cash -= TECHDEBT_FINE;
-      s.pendingDeltas.push({ label: `Compliance fine: ${t.title}`, amount: -TECHDEBT_FINE });
+      s.pendingDeltas.push({ label: `Missed deadline: ${t.title}`, amount: -TECHDEBT_FINE });
       s.pendingEvents.push(`🚨 ${t.title} missed its deadline — fined $${TECHDEBT_FINE.toLocaleString('en-US')}`);
-      t.deadlineWeek = null; // fined once
+      t.deadlineWeek = null;
     }
   }
 }
