@@ -3,18 +3,18 @@ import { Rng } from '../rng';
 import { generateInboxItem, checkDeadlines } from '../inbox';
 import { makeState } from './helpers';
 
-describe('locked tech-debt is not fined — you could not accept it', () => {
-  it('a pending tech-debt above your studio level expires with NO fine', () => {
+describe('tech-debt is always fined on a missed deadline (upgrade pressure)', () => {
+  it('a pending tech-debt above your studio level still fines you when missed', () => {
     const s = makeState(); // studioLevel 1
     const item = generateInboxItem(s, new Rng(1), 'techdebt');
-    item.requiredLevel = 5; // far above level 1 → locked, impossible to accept
+    item.requiredLevel = 5; // locked — but missing it still costs you
     item.deadlineWeek = s.weekIndex;
     s.inbox.push(item);
     s.weekIndex += 1; // deadline now passed
     const cash = s.cash;
     checkDeadlines(s);
-    expect(s.cash).toBe(cash); // NOT fined
-    expect(s.inbox.find((i) => i.id === item.id)!.status).toBe('done'); // expired quietly
+    expect(s.cash).toBe(cash - item.fineUsd!); // fined even though locked → pushes you to upgrade
+    expect(s.inbox.find((i) => i.id === item.id)!.status).toBe('done');
   });
 
   it('an acceptable (≤ level) tech-debt you ignored IS still fined', () => {

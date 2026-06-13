@@ -161,7 +161,7 @@ export function generateWeeklyInbox(s: GameState, rng: Rng): void {
   for (let i = 0; i < count; i++) {
     const roll = rng.next();
     let kind: InboxItemKind =
-      roll < 0.42 ? 'feature' : roll < 0.70 ? 'bug' : roll < 0.82 ? 'opportunity' : 'techdebt';
+      roll < 0.38 ? 'feature' : roll < 0.60 ? 'bug' : roll < 0.84 ? 'opportunity' : 'techdebt';
     // With no games owned, only studio-wide tech-debt can be generated.
     if (s.games.length === 0) kind = 'techdebt';
     // Feature inbox is capped at games × FEATURE_CAP_PER_GAME; overflow becomes a bug.
@@ -196,14 +196,11 @@ export function checkDeadlines(s: GameState): void {
     if (!past) continue;
     if (item.kind === 'techdebt' &&
         (item.status === 'pending' || item.status === 'declined')) {
-      // Only fine work the player could actually have accepted. A tech-debt item
-      // gated above the current studio level is impossible to take, so it just
-      // expires — no fine for something you were never allowed to do.
-      if ((item.requiredLevel ?? 1) <= s.studioLevel) {
-        s.cash -= item.fineUsd!;
-        s.pendingDeltas.push({ label: `Missed deadline: ${item.title}`, amount: -item.fineUsd! });
-        s.pendingEvents.push(`🚨 Missed ${item.title} deadline — fined $${item.fineUsd!.toLocaleString('en-US')}`);
-      }
+      // Tech-debt fines you even when it's locked above your level — that's the
+      // pressure to upgrade and be able to handle it next time.
+      s.cash -= item.fineUsd!;
+      s.pendingDeltas.push({ label: `Missed deadline: ${item.title}`, amount: -item.fineUsd! });
+      s.pendingEvents.push(`🚨 Missed ${item.title} deadline — fined $${item.fineUsd!.toLocaleString('en-US')}`);
       item.status = 'done';
     } else if (item.kind === 'opportunity' && (item.status === 'pending' || item.status === 'accepted')) {
       item.status = 'done';
