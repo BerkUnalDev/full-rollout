@@ -61,7 +61,7 @@ export const SALARY_BY_SKILL: Record<Role, readonly number[]> = {
 // Inbox
 export const INBOX_PER_WEEK: readonly [number, number] = [1, 3];
 export const FEATURING_REWARD_PCT = 0.25;
-export const FEATURING_DEADLINE_WEEKS: readonly [number, number] = [3, 5];
+export const FEATURING_DEADLINE_WEEKS: readonly [number, number] = [5, 8];
 export const DECLINED_BUG_RATING_HIT = 0.08; // × (declinedBugs so far + 1)
 
 // Market
@@ -87,10 +87,10 @@ export const STUDIO_LEVEL_CAP = 10;
 export const STUDIO_MAX_GAMES_PER_LEVEL = 4;
 // Cost to reach the NEXT level; index = currentLevel - 1 (L1→2 … L9→10).
 export const STUDIO_UPGRADE_COSTS: readonly number[] = [
-  4_000, 12_000, 25_000, 45_000, 75_000, 120_000, 180_000, 260_000, 360_000,
+  3_000, 8_000, 16_000, 28_000, 45_000, 70_000, 105_000, 150_000, 210_000,
 ];
 export const GATE_GRACE_WEEKS = 4; // first weeks: every gated item is Lv 1
-export const LEVEL_WINDOW_ABOVE = 2; // items may require up to studioLevel + this
+export const LEVEL_WINDOW_ABOVE = 1; // items may require up to studioLevel + this
 export const LEVEL_WINDOW_SPAN = 5; // distinct required-levels visible at once
 
 // Tech debt
@@ -109,9 +109,10 @@ export const TECHDEBT_FINE = 4_000;
 export const REPORT_HISTORY_CAP = 10;
 
 // v2.1 — treadmill / caps / economy
-export const WEEKS_PER_REQ_BUMP = 7; // required-level floor +1 every N weeks after grace
+export const WEEKS_PER_REQ_BUMP = 10; // required-level floor +1 every N weeks after grace (gentle)
+export const TECHDEBT_ACCESSIBLE_CHANCE = 0.4; // share of tech-debt that lands ≤ studioLevel (doable now)
 export const FEATURE_ACCESSIBLE_CHANCE = 0.2; // ~20% of features always ≤ studioLevel
-export const STUDIO_GAME_REQ: readonly number[] = [3, 5, 7, 10, 13, 16, 20, 24, 28]; // games needed to reach next level (index = level-1)
+export const STUDIO_GAME_REQ: readonly number[] = [2, 3, 4, 6, 8, 10, 13, 16, 20]; // games needed to reach next level (index = level-1)
 export const ROLE_CAP_BASE: Record<Role, number> = { Developer: 2, QA: 1, 'Release Manager': 1 }; // roleCap = base + level
 export const SEVERANCE_WEEKS = 2;
 export const FEATURING_ACCEPT_COST = 1_500;

@@ -2,15 +2,18 @@
 import { newGame } from '../newGame';
 import { applyAction } from '../actions';
 import { SEVERANCE_WEEKS, SELL_PRICE_WEEKS, SELL_PRICE_FLOOR } from '../constants';
+import { studioGameRequirement } from '../studio';
 
 describe('upgrade game precondition', () => {
   it('blocks upgrade until the games requirement is met', () => {
     const s = newGame(1);
     s.cash = 10_000_000; // afford the cash easily
-    expect(s.games.length).toBe(2); // L1 needs 3
+    // L1 needs studioGameRequirement(1) games. Drop below it to prove the gate.
+    s.games = s.games.slice(0, studioGameRequirement(1) - 1);
+    expect(s.games.length).toBeLessThan(studioGameRequirement(1));
     expect(() => applyAction(s, { type: 'upgradeStudio' })).toThrow(/games/i);
     s.games.push({ ...s.games[0], id: 'g-x', name: 'Extra' });
-    expect(s.games.length).toBe(3);
+    expect(s.games.length).toBe(studioGameRequirement(1));
     const s2 = applyAction(s, { type: 'upgradeStudio' });
     expect(s2.studioLevel).toBe(2);
   });
