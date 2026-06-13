@@ -173,3 +173,22 @@ select.assign {
   margin: 14px 0;
 }
 .howto ul { margin: 10px 0 0; padding-left: 20px; line-height: 1.7; }
+
+/* v2: tech-debt ticket type + ? popover */
+.type-icon.techdebt { background: #8777d9; }
+.card { position: relative; }
+.q-badge {
+  width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line);
+  background: #fff; color: var(--sub); font-size: 11px; font-weight: 700;
+  line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+  margin-right: 4px; padding: 0;
+}
+.q-badge:hover { background: var(--col); color: var(--text); }
+.popover {
+  position: absolute; top: 100%; right: 0; z-index: 5; width: 240px;
+  background: #fff; border: 1px solid var(--line); border-radius: 5px;
+  box-shadow: 0 6px 20px rgba(9, 30, 66, 0.3); padding: 10px 12px; margin-top: 4px;
+  font-size: 12.5px; line-height: 1.5; cursor: default;
+}
+.popover p { margin: 0 0 6px; }
+.popover p:last-child { margin: 0; }
