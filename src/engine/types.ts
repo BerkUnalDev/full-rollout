@@ -167,6 +167,7 @@ export interface GameState {
   pendingEvents: string[]; // plan-phase event lines, flushed into the weekly report
   lastReport: WeeklyReport | null;
   reportHistory: WeeklyReport[]; // most recent first-N (capped)
+  celebration?: { title: string; body: string } | null; // transient: featuring win popup
   log: string[]; // run highlights for the game-over screen
 }
 
@@ -181,4 +182,7 @@ export type PlanAction =
   | { type: 'cutRelease'; gameId: string }
   | { type: 'fullRollout'; releaseId: string }
   | { type: 'pullBack'; releaseId: string }
-  | { type: 'upgradeStudio' };
+  | { type: 'upgradeStudio' }
+  | { type: 'fireMember'; memberId: string }
+  | { type: 'sellGame'; gameId: string }
+  | { type: 'dismissCelebration' };
