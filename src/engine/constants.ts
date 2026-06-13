@@ -103,7 +103,11 @@ export const TECH_FAIL_PENALTY = 500; // cash ding on a failed tech-debt attempt
 export const TECH_REWORK_FRACTION = 0.5; // rework effort = ceil(effortTotal × this)
 export const TECH_INVEST_REVENUE_PCT: readonly [number, number] = [3, 6];
 export const TECHDEBT_DEADLINE_WEEKS = 3;
-export const TECHDEBT_FINE = 4_000;
+export const TECHDEBT_FINE = 2_000; // base; scaled by economyScale() at generation
+// Event amounts (tech-debt fine, featuring fee) scale with progression so they
+// stay meaningful when rich: 1 + PER_LEVEL×(level-1) + weeklyIncome/INCOME_DIV.
+export const EVENT_SCALE_PER_LEVEL = 0.5;
+export const EVENT_SCALE_INCOME_DIV = 12_000;
 
 // Report history
 export const REPORT_HISTORY_CAP = 10;

@@ -58,6 +58,7 @@ export interface Ticket {
   releaseVersion: string | null; // Release Tickets only
   techSubtype?: TechSubtype; // Tech Debt tickets only
   benefitRevenuePct?: number; // investment tech-debt: +% revenue on success
+  fineUsd?: number; // Tech Debt tickets: fine if the deadline lapses (scaled at gen)
 }
 
 export interface PortfolioGame {
@@ -122,6 +123,7 @@ export interface InboxItem {
   requiredLevel?: number; // feature & techdebt only (studio-level gate)
   techSubtype?: TechSubtype;
   benefitRevenuePct?: number; // investment subtype
+  acceptCost?: number; // opportunity: scaled featuring fee to accept
 }
 
 export interface GameOffer {

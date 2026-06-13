@@ -30,6 +30,7 @@ interface TicketInit {
   releaseVersion?: string | null;
   techSubtype?: import('./types').TechSubtype;
   benefitRevenuePct?: number;
+  fineUsd?: number;
 }
 
 /** Create a ticket in TODO and push it onto state. Returns the ticket. */
@@ -56,6 +57,7 @@ export function createTicket(s: GameState, init: TicketInit): Ticket {
     releaseVersion: init.releaseVersion ?? null,
     techSubtype: init.techSubtype,
     benefitRevenuePct: init.benefitRevenuePct,
+    fineUsd: init.fineUsd,
   };
   s.tickets.push(t);
   return t;

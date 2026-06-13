@@ -24,13 +24,14 @@ describe('tech-debt deadlines + no decline', () => {
 });
 
 describe('featuring accept fee', () => {
-  it('accepting an opportunity costs FEATURING_ACCEPT_COST', () => {
+  it('accepting an opportunity costs its (scaled) accept fee', () => {
     const s = newGame(1);
     const opp = generateInboxItem(s, new Rng(4), 'opportunity');
     s.inbox.push(opp);
+    expect(opp.acceptCost).toBeGreaterThanOrEqual(FEATURING_ACCEPT_COST); // scaled ≥ base
     const cash = s.cash;
     const s2 = applyAction(s, { type: 'acceptInbox', itemId: opp.id });
-    expect(s2.cash).toBe(cash - FEATURING_ACCEPT_COST);
+    expect(s2.cash).toBe(cash - opp.acceptCost!);
     expect(s2.inbox.find((i) => i.id === opp.id)!.status).toBe('accepted');
   });
 });

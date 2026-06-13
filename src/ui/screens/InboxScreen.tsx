@@ -36,7 +36,7 @@ export function InboxScreen() {
         )}
         {i.kind === 'opportunity' && (
           <p className="sub">
-            🎯 Reward: +{Math.round((i.rewardPlayersPct ?? 0) * 100)}% players if you full-roll {gameName(i.gameId)} by {i.deadlineWeek != null ? cwLabel(i.deadlineWeek) : '—'} · 💵 costs {fmtMoney(FEATURING_ACCEPT_COST)} to accept · ❌ miss = lose the boost (no penalty)
+            🎯 Reward: +{Math.round((i.rewardPlayersPct ?? 0) * 100)}% players if you full-roll {gameName(i.gameId)} by {i.deadlineWeek != null ? cwLabel(i.deadlineWeek) : '—'} · 💵 costs {fmtMoney(i.acceptCost ?? FEATURING_ACCEPT_COST)} to accept · ❌ miss = lose the boost (no penalty)
           </p>
         )}
         {i.deadlineWeek != null && i.kind !== 'opportunity' && <p>⏰ Deadline: {cwLabel(i.deadlineWeek)}</p>}
