@@ -26,3 +26,15 @@ export const initials = (name: string) =>
 
 export const signedPct = (v: number) => `${v > 0 ? '+' : ''}${v}%`;
 export const signedNum = (v: number) => `${v > 0 ? '+' : ''}${v}`;
+
+const GAME_LOGOS = [
+  '🎮', '🕹️', '🧩', '🎲', '🃏', '🎯', '🎰', '🏰', '🐉', '🦄',
+  '🍭', '🍩', '🚀', '⚽', '🏎️', '🪀', '🎨', '🐢', '🦊', '🌋',
+] as const;
+
+/** Deterministic unique-ish emoji logo for a game, derived from its id. */
+export function gameLogo(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return GAME_LOGOS[h % GAME_LOGOS.length];
+}
