@@ -31,6 +31,7 @@ export function Sidebar({ screen, setScreen, gameFilter, setGameFilter }: Props)
       {nav('inbox', '📨 Inbox', pending)}
       {nav('team', '👥 Team')}
       {nav('market', '🛒 Market')}
+      {nav('reports', '📜 Reports')}
       <div className="nav-head">Games</div>
       <button
         className={`nav-item ${gameFilter === null ? 'active' : ''}`}

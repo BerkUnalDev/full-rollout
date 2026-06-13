@@ -12,8 +12,9 @@ import { ReleasesScreen } from './screens/ReleasesScreen';
 import { TeamScreen } from './screens/TeamScreen';
 import { MarketScreen } from './screens/MarketScreen';
 import { InboxScreen } from './screens/InboxScreen';
+import { ReportsScreen } from './screens/ReportsScreen';
 
-export type Screen = 'board' | 'releases' | 'team' | 'market' | 'inbox';
+export type Screen = 'board' | 'releases' | 'team' | 'market' | 'inbox' | 'reports';
 const HELP_KEY = 'full-rollout-help-seen';
 
 function Shell() {
@@ -39,6 +40,7 @@ function Shell() {
           {screen === 'team' && <TeamScreen />}
           {screen === 'market' && <MarketScreen />}
           {screen === 'inbox' && <InboxScreen />}
+          {screen === 'reports' && <ReportsScreen />}
         </main>
       </div>
       {openTicket && <TicketModal ticketKey={openTicket} onClose={() => setOpenTicket(null)} />}
