@@ -13,6 +13,7 @@ import { TeamScreen } from './screens/TeamScreen';
 import { MarketScreen } from './screens/MarketScreen';
 import { InboxScreen } from './screens/InboxScreen';
 import { ReportsScreen } from './screens/ReportsScreen';
+import { CelebrationModal } from './components/CelebrationModal';
 
 export type Screen = 'board' | 'releases' | 'team' | 'market' | 'inbox' | 'reports';
 const HELP_KEY = 'full-rollout-help-seen';
@@ -51,6 +52,13 @@ function Shell() {
         />
       )}
       {s.status === 'bankrupt' && !showReport && <GameOverScreen />}
+      {s.celebration && (
+        <CelebrationModal
+          title={s.celebration.title}
+          body={s.celebration.body}
+          onClose={() => d.act({ type: 'dismissCelebration' })}
+        />
+      )}
     </div>
   );
 }

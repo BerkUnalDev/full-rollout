@@ -45,17 +45,17 @@ describe('accept / decline', () => {
 });
 
 describe('deadlines', () => {
-  it('fines a declined mandatory tech-debt item once when the deadline passes', () => {
+  it('fines a pending mandatory tech-debt item once when the deadline passes', () => {
     const s = makeState();
     const item = generateInboxItem(s, new Rng(1), 'techdebt', undefined, 'mandatory');
     s.inbox.push(item);
-    const s2 = applyAction(s, { type: 'declineInbox', itemId: item.id });
-    s2.weekIndex = item.deadlineWeek! + 1;
-    const cash = s2.cash;
-    checkDeadlines(s2);
-    expect(s2.cash).toBe(cash - SDK_FINE_EXPECTED);
-    checkDeadlines(s2); // no double fine
-    expect(s2.cash).toBe(cash - SDK_FINE_EXPECTED);
+    // tech-debt cannot be declined; leave it pending and advance past the deadline
+    s.weekIndex = item.deadlineWeek! + 1;
+    const cash = s.cash;
+    checkDeadlines(s);
+    expect(s.cash).toBe(cash - SDK_FINE_EXPECTED);
+    checkDeadlines(s); // no double fine
+    expect(s.cash).toBe(cash - SDK_FINE_EXPECTED);
   });
 
   it('fines an accepted-but-unfinished mandatory tech-debt ticket at the deadline', () => {
@@ -80,6 +80,16 @@ describe('deadlines', () => {
     s.weekIndex = item.deadlineWeek! + 1;
     checkDeadlines(s);
     expect(s.inbox.find((i) => i.id === item.id)!.status).toBe('done');
+  });
+
+  it('fines a missed investment tech-debt at its deadline', () => {
+    const s = makeState();
+    const item = generateInboxItem(s, new Rng(11), 'techdebt', undefined, 'investment');
+    s.inbox.push(item);
+    s.weekIndex = item.deadlineWeek! + 1;
+    const cash = s.cash;
+    checkDeadlines(s);
+    expect(s.cash).toBeLessThan(cash); // fined even though it's "investment"
   });
 });
 

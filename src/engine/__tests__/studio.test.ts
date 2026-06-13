@@ -1,7 +1,7 @@
 // src/engine/__tests__/studio.test.ts
 import { Rng } from '../rng';
-import { maxGamesFor, nextUpgradeCost, rollRequiredLevel } from '../studio';
-import { STUDIO_LEVEL_CAP, STUDIO_UPGRADE_COSTS, LEVEL_WINDOW_SPAN } from '../constants';
+import { maxGamesFor, nextUpgradeCost, rollRequiredLevel, studioGameRequirement, roleCapacity } from '../studio';
+import { STUDIO_LEVEL_CAP, STUDIO_UPGRADE_COSTS, LEVEL_WINDOW_SPAN, WEEKS_PER_REQ_BUMP, GATE_GRACE_WEEKS } from '../constants';
 import { makeState } from './helpers';
 
 describe('maxGamesFor', () => {
@@ -49,5 +49,46 @@ describe('rollRequiredLevel', () => {
       expect(lv).toBeLessThanOrEqual(STUDIO_LEVEL_CAP);
       expect(lv).toBeGreaterThanOrEqual(1);
     }
+  });
+});
+
+describe('rising floor (v2.1)', () => {
+  it('floor climbs +1 every WEEKS_PER_REQ_BUMP after grace', () => {
+    const s = makeState();
+    s.studioLevel = 1;
+    const minAt = (week: number) => {
+      s.weekIndex = week;
+      let min = 99;
+      for (let i = 0; i < 300; i++) min = Math.min(min, rollRequiredLevel(s, new Rng(i))); // no accessible chance
+      return min;
+    };
+    expect(minAt(GATE_GRACE_WEEKS)).toBe(1);
+    expect(minAt(GATE_GRACE_WEEKS + WEEKS_PER_REQ_BUMP)).toBe(2);
+    expect(minAt(GATE_GRACE_WEEKS + WEEKS_PER_REQ_BUMP * 3)).toBe(4);
+  });
+
+  it('feature accessible-chance yields ≤ studioLevel sometimes; tech-debt never gets the guarantee', () => {
+    const s = makeState();
+    s.studioLevel = 2;
+    s.weekIndex = 40; // floor well above 2 without the guarantee
+    let featAccessible = 0, techAccessible = 0;
+    for (let i = 0; i < 400; i++) {
+      if (rollRequiredLevel(s, new Rng(i), 0.2) <= s.studioLevel) featAccessible++;
+      if (rollRequiredLevel(s, new Rng(i)) <= s.studioLevel) techAccessible++;
+    }
+    expect(featAccessible).toBeGreaterThan(40); // ~20% land accessible
+    expect(techAccessible).toBe(0); // pure rising floor is above level 2 by week 40
+  });
+});
+
+describe('studioGameRequirement / roleCapacity', () => {
+  it('game requirement by level', () => {
+    expect(studioGameRequirement(1)).toBe(3);
+    expect(studioGameRequirement(2)).toBe(5);
+  });
+  it('role capacity = base + level', () => {
+    expect(roleCapacity('Developer', 1)).toBe(3);
+    expect(roleCapacity('QA', 1)).toBe(2);
+    expect(roleCapacity('Release Manager', 3)).toBe(4);
   });
 });

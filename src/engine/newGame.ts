@@ -40,6 +40,7 @@ export function newGame(seed: number = DEFAULT_SEED): GameState {
     pendingEvents: [],
     lastReport: null,
     reportHistory: [],
+    celebration: null,
     log: [],
   };
 

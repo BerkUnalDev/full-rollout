@@ -6,9 +6,9 @@ export { serialize, deserialize, SAVE_KEY } from './save';
 export { canCutRelease, qaCompleteFor } from './releases';
 export { companyValue } from './economy';
 export { cwLabel, weekToCW } from './week';
-export { maxGamesFor, nextUpgradeCost } from './studio';
+export { maxGamesFor, nextUpgradeCost, roleCapacity, studioGameRequirement } from './studio';
 export { memberStats } from './team';
-export { DECAY_GRACE_WEEKS, GENRES, NEW_GAME_COST, STUDIO_LEVEL_CAP } from './constants';
+export { DECAY_GRACE_WEEKS, GENRES, NEW_GAME_COST, STUDIO_LEVEL_CAP, FEATURE_CAP_PER_GAME } from './constants';
 export type {
   CashDelta, GameOffer, GameState, Genre, Happiness, HireCandidate, Impact,
   InboxItem, PlanAction, PortfolioGame, Release, ReportCard, Role, TeamMember,

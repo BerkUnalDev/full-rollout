@@ -3,11 +3,16 @@ import { useGame } from '../store';
 import { fmtMoney } from '../format';
 import type { WeeklyReport } from '../../engine';
 
+const BAD = ['⚠️', '🚨', '📉', '🔁', '↩️', '⌛', '💀'];
+const isBad = (e: string) => BAD.some((m) => e.startsWith(m));
+
 export function WeeklyReportModal({ report, onClose }: { report?: WeeklyReport; onClose: () => void }) {
   const s = useGame();
   const r = report ?? s.lastReport;
   if (!r) return null;
   const net = r.cashEnd - r.cashStart;
+  const good = r.events.filter((e) => !isBad(e));
+  const bad = r.events.filter(isBad);
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -26,10 +31,17 @@ export function WeeklyReportModal({ report, onClose }: { report?: WeeklyReport; 
             </tr>
           </tbody>
         </table>
-        {r.events.length > 0 && (
-          <ul style={{ lineHeight: 1.8, marginTop: 12 }}>
-            {r.events.map((e, i) => <li key={i}>{e}</li>)}
-          </ul>
+        {good.length > 0 && (
+          <>
+            <div className="nav-head" style={{ paddingLeft: 0 }}>🟢 Good week</div>
+            <ul style={{ lineHeight: 1.8, margin: 0 }}>{good.map((e, i) => <li key={i}>{e}</li>)}</ul>
+          </>
+        )}
+        {bad.length > 0 && (
+          <>
+            <div className="nav-head" style={{ paddingLeft: 0 }}>🔴 Needs attention</div>
+            <ul style={{ lineHeight: 1.8, margin: 0 }}>{bad.map((e, i) => <li key={i}>{e}</li>)}</ul>
+          </>
         )}
         <div className="foot">
           <button className="btn blue" onClick={onClose}>Close</button>

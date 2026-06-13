@@ -107,3 +107,15 @@ export const TECHDEBT_FINE = 4_000;
 
 // Report history
 export const REPORT_HISTORY_CAP = 10;
+
+// v2.1 — treadmill / caps / economy
+export const WEEKS_PER_REQ_BUMP = 7; // required-level floor +1 every N weeks after grace
+export const FEATURE_ACCESSIBLE_CHANCE = 0.2; // ~20% of features always ≤ studioLevel
+export const STUDIO_GAME_REQ: readonly number[] = [3, 5, 7, 10, 13, 16, 20, 24, 28]; // games needed to reach next level (index = level-1)
+export const ROLE_CAP_BASE: Record<Role, number> = { Developer: 2, QA: 1, 'Release Manager': 1 }; // roleCap = base + level
+export const SEVERANCE_WEEKS = 2;
+export const FEATURING_ACCEPT_COST = 1_500;
+export const SELL_PRICE_WEEKS = 18;
+export const SELL_PRICE_FLOOR = 500;
+export const FEATURE_CAP_PER_GAME = 5; // feature inbox cap = games × this
+export const TECHDEBT_REFILL_CHANCE = 0.6; // weekly chance to inject tech-debt when none active
