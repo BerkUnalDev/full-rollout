@@ -87,10 +87,11 @@ export function runQaPhase(s: GameState, rng: Rng): void {
       const rework = Math.max(1, Math.ceil(t.effortTotal * REWORK_FRACTION));
       t.effort = rework;
       t.phaseEffort = rework;
-      t.status = 'TODO'; // back to the backlog for rework — player re-staffs it
-      s.pendingEvents.push(`🔁 ${t.title} bounced back from QA`);
+      t.status = 'TODO';
+      s.pendingEvents.push(`🔁 ${qa.name} sent ${t.title} back for rework`);
     } else {
       t.status = 'QA_COMPLETE';
+      s.pendingEvents.push(`🔬 ${qa.name} passed ${t.title}`);
     }
   }
 }

@@ -112,7 +112,7 @@ describe('runQaPhase', () => {
     expect(t.hiddenBugs).toBeLessThan(10);
     expect(t.effort).toBe(Math.max(1, Math.ceil(t.effortTotal * REWORK_FRACTION)));
     expect(t.phaseEffort).toBe(t.effort);
-    expect(s.pendingEvents.some((e) => e.includes('bounced back from QA'))).toBe(true);
+    expect(s.pendingEvents.some((e) => e.includes('sent') && e.includes('back for rework'))).toBe(true);
   });
 
   it('a QA member works only their own ticket', () => {
