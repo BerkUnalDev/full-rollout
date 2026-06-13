@@ -96,8 +96,8 @@ handlers.cutRelease = ({ s, rng }, a: { gameId: string }) => {
   performCut(s, rng, a.gameId);
 };
 
-handlers.fullRollout = ({ s }, a: { releaseId: string }) => {
-  applyFullRollout(s, a.releaseId);
+handlers.fullRollout = ({ s, rng }, a: { releaseId: string }) => {
+  applyFullRollout(s, rng, a.releaseId);
 };
 
 handlers.pullBack = ({ s, rng }, a: { releaseId: string }) => {

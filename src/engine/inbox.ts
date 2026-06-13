@@ -3,7 +3,8 @@ import { Rng } from './rng';
 import {
   DECLINED_BUG_RATING_HIT, FEATURE_ACCESSIBLE_CHANCE, FEATURE_CAP_PER_GAME,
   FEATURING_ACCEPT_COST, FEATURING_DEADLINE_WEEKS, FEATURING_REWARD_PCT, GENRE_FIT,
-  INBOX_PER_WEEK, TECHDEBT_ACCESSIBLE_CHANCE, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT,
+  INBOX_EXTRA_MAX, INBOX_GAMES_PER_EXTRA, INBOX_PER_WEEK,
+  TECHDEBT_ACCESSIBLE_CHANCE, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT,
   TECHDEBT_FINE, TECHDEBT_REFILL_CHANCE, TECH_INVEST_REVENUE_PCT,
 } from './constants';
 import { OPPORTUNITY_BODIES, TECHDEBT_INVESTMENT_TITLES, TECHDEBT_MANDATORY_TITLES } from './data';
@@ -162,11 +163,13 @@ export function declineInboxItem(s: GameState, itemId: string): void {
 /** Mutates s: 1-3 new events for the new week. At most one mandatory tech-debt chore in flight. */
 export function generateWeeklyInbox(s: GameState, rng: Rng): void {
   const featureCap = s.games.length * FEATURE_CAP_PER_GAME;
-  const count = rng.int(INBOX_PER_WEEK[0], INBOX_PER_WEEK[1]);
+  // Bigger portfolio → more weekly work (bugs + requests) so a large studio stays busy.
+  const extra = Math.min(INBOX_EXTRA_MAX, Math.floor(s.games.length / INBOX_GAMES_PER_EXTRA));
+  const count = rng.int(INBOX_PER_WEEK[0], INBOX_PER_WEEK[1]) + extra;
   for (let i = 0; i < count; i++) {
     const roll = rng.next();
     let kind: InboxItemKind =
-      roll < 0.38 ? 'feature' : roll < 0.60 ? 'bug' : roll < 0.84 ? 'opportunity' : 'techdebt';
+      roll < 0.34 ? 'feature' : roll < 0.62 ? 'bug' : roll < 0.82 ? 'opportunity' : 'techdebt';
     // With no games owned, only studio-wide tech-debt can be generated.
     if (s.games.length === 0) kind = 'techdebt';
     // Feature inbox is capped at games × FEATURE_CAP_PER_GAME; overflow becomes a bug.

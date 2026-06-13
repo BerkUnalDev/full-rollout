@@ -45,7 +45,9 @@ export function Sidebar({ screen, setScreen, gameFilter, setGameFilter }: Props)
         All games
       </button>
       {[...s.games].sort((a, b) => b.players - a.players).map((g) => {
-        const hasOpenBug = s.tickets.some((t) => t.gameId === g.id && t.type === 'Bug' && t.status !== 'DONE');
+        const hasOpenBug =
+          s.inbox.some((i) => i.kind === 'bug' && i.status === 'pending' && i.gameId === g.id) ||
+          s.tickets.some((t) => t.gameId === g.id && t.type === 'Bug' && t.status !== 'DONE');
         const stale = s.weekIndex - g.lastRolloutWeek > DECAY_GRACE_WEEKS && g.players > 0;
         const outage = (g.outageWeeks ?? 0) > 0;
         return (
