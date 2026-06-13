@@ -4,9 +4,6 @@ import { newGame } from '../newGame';
 import { applyAction } from '../actions';
 import { checkDeadlines, generateWeeklyInbox } from '../inbox';
 import { generateInboxItem } from '../inbox';
-import { TECHDEBT_FINE } from '../constants';
-
-const SDK_FINE_EXPECTED = TECHDEBT_FINE;
 import { makeState } from './helpers';
 
 describe('accept / decline', () => {
@@ -53,9 +50,9 @@ describe('deadlines', () => {
     s.weekIndex = item.deadlineWeek! + 1;
     const cash = s.cash;
     checkDeadlines(s);
-    expect(s.cash).toBe(cash - SDK_FINE_EXPECTED);
+    expect(s.cash).toBe(cash - item.fineUsd!);
     checkDeadlines(s); // no double fine
-    expect(s.cash).toBe(cash - SDK_FINE_EXPECTED);
+    expect(s.cash).toBe(cash - item.fineUsd!);
   });
 
   it('fines an accepted-but-unfinished mandatory tech-debt ticket at the deadline', () => {
@@ -69,7 +66,7 @@ describe('deadlines', () => {
     s2.weekIndex = item.deadlineWeek! + 1;
     const cash = s2.cash;
     checkDeadlines(s2);
-    expect(s2.cash).toBe(cash - SDK_FINE_EXPECTED);
+    expect(s2.cash).toBe(cash - task.fineUsd!);
     expect(s2.tickets.find((t) => t.type === 'Tech Debt')!.deadlineWeek).toBeNull();
   });
 

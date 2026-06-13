@@ -9,6 +9,7 @@ import {
 import { OPPORTUNITY_BODIES, TECHDEBT_INVESTMENT_TITLES, TECHDEBT_MANDATORY_TITLES } from './data';
 import { cwLabel } from './week';
 import { createTicket, genId, genStoryConcept, genBugTitle, effortFor } from './generators';
+import { economyScale } from './economy';
 import { rollRequiredLevel } from './studio';
 import type { GameState, InboxItem, InboxItemKind, TechSubtype } from './types';
 
@@ -78,12 +79,13 @@ export function generateInboxItem(
   }
   if (kind === 'opportunity') {
     const deadlineWeek = s.weekIndex + rng.int(FEATURING_DEADLINE_WEEKS[0], FEATURING_DEADLINE_WEEKS[1]);
+    const acceptCost = Math.round(FEATURING_ACCEPT_COST * economyScale(s));
     const body = rng.pick(OPPORTUNITY_BODIES)
       .replace('{game}', game!.name)
       .replace('{deadline}', cwLabel(deadlineWeek));
     return {
       ...base, kind, title: `Featuring opportunity: ${game!.name}`,
-      body, deadlineWeek, rewardPlayersPct: FEATURING_REWARD_PCT,
+      body, deadlineWeek, rewardPlayersPct: FEATURING_REWARD_PCT, acceptCost,
     };
   }
   // techdebt (studio-wide; replaces the old per-game SDK task)
@@ -91,20 +93,21 @@ export function generateInboxItem(
   const requiredLevel = rollRequiredLevel(s, rng, TECHDEBT_ACCESSIBLE_CHANCE);
   const effort = rng.int(TECHDEBT_EFFORT[0], TECHDEBT_EFFORT[1]);
   const deadlineWeek = s.weekIndex + TECHDEBT_DEADLINE_WEEKS;
+  const fineUsd = Math.round(TECHDEBT_FINE * economyScale(s)); // scales with progression
   if (subtype === 'mandatory') {
     return {
       ...base, gameId: '', kind: 'techdebt', techSubtype: 'mandatory', requiredLevel,
       title: uniqueTitle(s, rng.pick(TECHDEBT_MANDATORY_TITLES)),
-      body: `Compliance work for the whole studio. Ship by ${cwLabel(deadlineWeek)} or pay a $${TECHDEBT_FINE.toLocaleString('en-US')} fine. A junior dev may botch it even on time.`,
-      deadlineWeek, fineUsd: TECHDEBT_FINE, effort,
+      body: `Compliance work for the whole studio. Ship by ${cwLabel(deadlineWeek)} or pay a $${fineUsd.toLocaleString('en-US')} fine. A junior dev may botch it even on time.`,
+      deadlineWeek, fineUsd, effort,
     };
   }
   const benefitRevenuePct = Math.round(rng.range(TECH_INVEST_REVENUE_PCT[0], TECH_INVEST_REVENUE_PCT[1]) * 10) / 10;
   return {
     ...base, gameId: '', kind: 'techdebt', techSubtype: 'investment', requiredLevel,
     title: uniqueTitle(s, rng.pick(TECHDEBT_INVESTMENT_TITLES)),
-    body: `Engineering upgrade. Ship by ${cwLabel(deadlineWeek)} → permanent +${benefitRevenuePct}% revenue on every game; miss it → $${TECHDEBT_FINE.toLocaleString('en-US')} fine. A junior dev may botch it.`,
-    benefitRevenuePct, deadlineWeek, fineUsd: TECHDEBT_FINE, effort,
+    body: `Engineering upgrade. Ship by ${cwLabel(deadlineWeek)} → permanent +${benefitRevenuePct}% revenue on every game; miss it → $${fineUsd.toLocaleString('en-US')} fine. A junior dev may botch it.`,
+    benefitRevenuePct, deadlineWeek, fineUsd, effort,
   };
 }
 
@@ -129,12 +132,14 @@ export function acceptInboxItem(s: GameState, itemId: string): void {
       type: 'Tech Debt', gameId: '', title: item.title, effort: item.effort!,
       deadlineWeek: item.deadlineWeek, // both subtypes carry a hard deadline → fined if unfinished
       techSubtype: item.techSubtype, benefitRevenuePct: item.benefitRevenuePct,
+      fineUsd: item.fineUsd, // carry the scaled fine onto the ticket
     });
   }
   // opportunities are just tracked; payout happens on full rollout (releases.ts)
   if (item.kind === 'opportunity') {
-    s.cash -= FEATURING_ACCEPT_COST;
-    s.pendingDeltas.push({ label: `Featuring fee: ${item.title}`, amount: -FEATURING_ACCEPT_COST });
+    const cost = item.acceptCost ?? FEATURING_ACCEPT_COST;
+    s.cash -= cost;
+    s.pendingDeltas.push({ label: `Featuring fee: ${item.title}`, amount: -cost });
   }
   item.status = 'accepted';
 }
@@ -221,9 +226,10 @@ export function checkDeadlines(s: GameState): void {
       t.type === 'Tech Debt' && t.deadlineWeek !== null &&
       t.deadlineWeek < s.weekIndex && t.status !== 'DONE'
     ) {
-      s.cash -= TECHDEBT_FINE;
-      s.pendingDeltas.push({ label: `Missed deadline: ${t.title}`, amount: -TECHDEBT_FINE });
-      s.pendingEvents.push(`🚨 ${t.title} missed its deadline — fined $${TECHDEBT_FINE.toLocaleString('en-US')}`);
+      const fine = t.fineUsd ?? Math.round(TECHDEBT_FINE * economyScale(s));
+      s.cash -= fine;
+      s.pendingDeltas.push({ label: `Missed deadline: ${t.title}`, amount: -fine });
+      s.pendingEvents.push(`🚨 ${t.title} missed its deadline — fined $${fine.toLocaleString('en-US')}`);
       t.deadlineWeek = null;
     }
   }
