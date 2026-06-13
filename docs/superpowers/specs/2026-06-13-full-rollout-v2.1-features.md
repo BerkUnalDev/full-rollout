@@ -61,9 +61,9 @@ New `PlanAction { type: 'fireMember'; memberId }`. Pays **severance = `SEVERANCE
 
 New `PlanAction { type: 'sellGame'; gameId }`. Sale price = `round(weeklyRevenue × SELL_PRICE_WEEKS)` with `SELL_PRICE_WEEKS` (=18; below buy's 25× — you sell at a discount), minimum `SELL_PRICE_FLOOR` (=$500) for in-dev/0-player games. Throws if the game has an in-flight (non-decided) release. Removes the game and all its tickets; adds cash + delta + event + log. Market screen gets a **"Your games"** panel with a Sell button (price shown) per game.
 
-## 8. Feature-request inbox cap
+## 8. Feature-request inbox cap (scales with portfolio)
 
-`generateWeeklyInbox`: when a roll picks `feature` and pending feature count ≥ `FEATURE_INBOX_CAP` (=10), convert it to a bug instead. Inbox UI shows the feature section header as `💡 Feature requests (N/10)` and, at 10/10, a note: `Full — decline some to make room for new requests.` Declining now meaningfully unblocks new requests.
+Cap = `games.length × FEATURE_CAP_PER_GAME` (=5) — 2 games → 10, 3 → 15, etc. **Applies only to `feature` items** (bugs, opportunities, and tech-debt are NOT capped). `generateWeeklyInbox`: when a roll picks `feature` and the pending feature count ≥ that cap, convert it to a bug instead. Inbox UI shows the feature section header as `💡 Feature requests (N/{cap})` and, when full, a note: `Full — decline some to make room for new requests.` Declining now meaningfully unblocks new requests, and growing your portfolio raises the ceiling.
 
 ## 9. Game logos
 
