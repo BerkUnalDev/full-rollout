@@ -60,6 +60,8 @@ export const SALARY_BY_SKILL: Record<Role, readonly number[]> = {
 
 // Inbox
 export const INBOX_PER_WEEK: readonly [number, number] = [1, 3];
+export const INBOX_GAMES_PER_EXTRA = 3; // +1 weekly inbox item per N games owned
+export const INBOX_EXTRA_MAX = 8; // cap the portfolio-size bonus items
 export const FEATURING_REWARD_PCT = 0.25;
 export const FEATURING_DEADLINE_WEEKS: readonly [number, number] = [5, 8];
 export const DECLINED_BUG_RATING_HIT = 0.08; // × (declinedBugs so far + 1)

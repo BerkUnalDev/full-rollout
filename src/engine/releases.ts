@@ -2,6 +2,7 @@
 import { Rng } from './rng';
 import { clamp, computeQuality, deriveReportCard } from './quality';
 import { createTicket, genId, genBugTitle, effortFor } from './generators';
+import { generateInboxItem } from './inbox';
 import { cwLabel } from './week';
 import { GROWTH_DIVISOR, NEW_GAME_SEED_PER_QUALITY, QUALITY_BASE } from './constants';
 import type { GameState, PortfolioGame, Release, Ticket } from './types';
@@ -111,7 +112,7 @@ function decidable(s: GameState, releaseId: string): Release {
 }
 
 /** Mutates s: apply the release to the live game. */
-export function applyFullRollout(s: GameState, releaseId: string): void {
+export function applyFullRollout(s: GameState, rng: Rng, releaseId: string): void {
   const r = decidable(s, releaseId);
   const g = s.games.find((x) => x.id === r.gameId)!;
   const card = r.reportCard!;
@@ -143,6 +144,11 @@ export function applyFullRollout(s: GameState, releaseId: string): void {
         body: `The platform spotlight gave ${g.name} a +${Math.round((item.rewardPlayersPct ?? 0) * 100)}% player spike.`,
       };
     }
+  }
+  // Bugs QA missed go live with the rollout → real bug reports land in the inbox.
+  if (card.bugReports > 0) {
+    for (let i = 0; i < card.bugReports; i++) s.inbox.push(generateInboxItem(s, rng, 'bug', g.id));
+    s.pendingEvents.push(`🐛 ${card.bugReports} bug report(s) came in for ${g.name} after launch — check the inbox`);
   }
 }
 
