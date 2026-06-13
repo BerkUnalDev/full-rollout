@@ -50,7 +50,7 @@ describe('save/load', () => {
 
   it('rejects other schema versions', () => {
     const s = newGame(1);
-    const tampered = serialize(s).replace('"v":1', '"v":999');
+    const tampered = serialize(s).replace(/"v":\d+/, '"v":999');
     expect(deserialize(tampered)).toBeNull();
   });
 });

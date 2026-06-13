@@ -28,6 +28,8 @@ interface TicketInit {
   impact?: Impact;
   deadlineWeek?: number | null;
   releaseVersion?: string | null;
+  techSubtype?: import('./types').TechSubtype;
+  benefitRevenuePct?: number;
 }
 
 /** Create a ticket in TODO and push it onto state. Returns the ticket. */
@@ -52,6 +54,8 @@ export function createTicket(s: GameState, init: TicketInit): Ticket {
     deadlineWeek: init.deadlineWeek ?? null,
     createdWeek: s.weekIndex,
     releaseVersion: init.releaseVersion ?? null,
+    techSubtype: init.techSubtype,
+    benefitRevenuePct: init.benefitRevenuePct,
   };
   s.tickets.push(t);
   return t;

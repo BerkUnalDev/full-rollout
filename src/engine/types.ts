@@ -1,6 +1,6 @@
 // src/engine/types.ts
 export type Role = 'Developer' | 'QA' | 'Release Manager';
-export type TicketType = 'Story' | 'Bug' | 'Release Ticket' | 'Task';
+export type TicketType = 'Story' | 'Bug' | 'Release Ticket' | 'Task' | 'Tech Debt';
 export type TicketStatus =
   | 'TODO'
   | 'IN_DEVELOPMENT'
@@ -55,6 +55,8 @@ export interface Ticket {
   deadlineWeek: number | null; // absolute weekIndex (SDK tasks)
   createdWeek: number; // absolute weekIndex
   releaseVersion: string | null; // Release Tickets only
+  techSubtype?: TechSubtype; // Tech Debt tickets only
+  benefitRevenuePct?: number; // investment tech-debt: +% revenue on success
 }
 
 export interface PortfolioGame {
@@ -93,7 +95,8 @@ export interface Release {
   decision: 'full' | 'pulled' | null;
 }
 
-export type InboxItemKind = 'feature' | 'bug' | 'opportunity' | 'sdk';
+export type InboxItemKind = 'feature' | 'bug' | 'opportunity' | 'techdebt';
+export type TechSubtype = 'mandatory' | 'investment';
 export type InboxStatus = 'pending' | 'accepted' | 'declined' | 'done';
 
 export interface InboxItem {
@@ -112,8 +115,11 @@ export interface InboxItem {
   // opportunity fields
   deadlineWeek?: number;
   rewardPlayersPct?: number; // e.g. 0.25 = +25% players
-  // sdk fields
+  // sdk/techdebt fields
   fineUsd?: number;
+  requiredLevel?: number; // feature & techdebt only (studio-level gate)
+  techSubtype?: TechSubtype;
+  benefitRevenuePct?: number; // investment subtype
 }
 
 export interface GameOffer {
@@ -147,6 +153,7 @@ export interface GameState {
   weekIndex: number; // 0 = CW 24/2026
   cash: number;
   status: 'playing' | 'bankrupt';
+  studioLevel: number;
   team: TeamMember[];
   games: PortfolioGame[];
   tickets: Ticket[];
@@ -159,6 +166,7 @@ export interface GameState {
   pendingDeltas: CashDelta[]; // plan-phase cash moves, flushed into the weekly report
   pendingEvents: string[]; // plan-phase event lines, flushed into the weekly report
   lastReport: WeeklyReport | null;
+  reportHistory: WeeklyReport[]; // most recent first-N (capped)
   log: string[]; // run highlights for the game-over screen
 }
 
@@ -172,4 +180,5 @@ export type PlanAction =
   | { type: 'startNewGame'; genre: Genre }
   | { type: 'cutRelease'; gameId: string }
   | { type: 'fullRollout'; releaseId: string }
-  | { type: 'pullBack'; releaseId: string };
+  | { type: 'pullBack'; releaseId: string }
+  | { type: 'upgradeStudio' };

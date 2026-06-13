@@ -68,3 +68,18 @@ export const NEW_GAME_STORY_TITLES = [
   'First 100 levels',
   'Tutorial & onboarding',
 ] as const;
+
+export const TECHDEBT_MANDATORY_TITLES = [
+  'SDK Upgrade 4.2',
+  'Privacy Compliance Update',
+  'Ad Mediation SDK Upgrade',
+  'OS Target API Bump',
+] as const;
+
+export const TECHDEBT_INVESTMENT_TITLES = [
+  'Game Engine v9 Migration',
+  'AI Automation Pipeline',
+  'Build Pipeline Overhaul',
+  'Crash Analytics Revamp',
+  'Live-Ops Tooling Upgrade',
+] as const;

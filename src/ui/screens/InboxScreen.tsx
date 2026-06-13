@@ -5,7 +5,7 @@ import { signedPct } from '../format';
 import type { InboxItem } from '../../engine';
 
 const KIND_EMOJI: Record<InboxItem['kind'], string> = {
-  feature: '💡', bug: '🐞', opportunity: '🌟', sdk: '🛠️',
+  feature: '💡', bug: '🐞', opportunity: '🌟', techdebt: '🛠️',
 };
 
 export function InboxScreen() {
@@ -30,7 +30,7 @@ export function InboxScreen() {
             <button className="btn green" onClick={() => d.act({ type: 'acceptInbox', itemId: i.id })}>
               Accept
             </button>
-            {i.kind !== 'sdk' ? (
+            {i.kind !== 'techdebt' ? (
               <button className="btn" onClick={() => d.act({ type: 'declineInbox', itemId: i.id })}>
                 Decline
               </button>

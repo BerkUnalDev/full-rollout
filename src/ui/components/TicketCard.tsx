@@ -9,6 +9,7 @@ const TYPE_META: Record<Ticket['type'], { cls: string; letter: string }> = {
   Bug: { cls: 'bug', letter: 'B' },
   'Release Ticket': { cls: 'release', letter: 'R' },
   Task: { cls: 'task', letter: 'T' },
+  'Tech Debt': { cls: 'task', letter: 'D' },
 };
 
 export function TicketCard({ t, onOpen }: { t: Ticket; onOpen: (k: string) => void }) {
