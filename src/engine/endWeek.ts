@@ -6,6 +6,7 @@ import { arriveReports, shipCuttingReleases } from './releases';
 import { runEconomy } from './economy';
 import { checkDeadlines, generateWeeklyInbox } from './inbox';
 import { refreshMarket } from './generators';
+import { REPORT_HISTORY_CAP } from './constants';
 import type { GameState } from './types';
 
 /** Pure: resolve the current week and hand back the next one. */
@@ -44,6 +45,7 @@ export function endWeek(state: GameState): GameState {
     events: s.pendingEvents,
     arrivedReleaseIds: arrivedIds,
   };
+  s.reportHistory = [...s.reportHistory, s.lastReport].slice(-REPORT_HISTORY_CAP);
   s.pendingDeltas = [];
   s.pendingEvents = [];
   s.rngState = rng.state;

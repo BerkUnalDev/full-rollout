@@ -50,7 +50,23 @@ describe('save/load', () => {
 
   it('rejects other schema versions', () => {
     const s = newGame(1);
-    const tampered = serialize(s).replace('"v":1', '"v":999');
+    const tampered = serialize(s).replace(/"v":\d+/, '"v":999');
     expect(deserialize(tampered)).toBeNull();
+  });
+
+  it('roundtrips studioLevel and reportHistory', () => {
+    let s = newGame(2);
+    s = endWeek(s); // populate reportHistory
+    s.studioLevel = 3;
+    const back = deserialize(serialize(s))!;
+    expect(back.studioLevel).toBe(3);
+    expect(back.reportHistory).toEqual(s.reportHistory);
+  });
+
+  it('rejects a save missing v2 fields', () => {
+    const s = newGame(1);
+    const bad = JSON.parse(serialize(s));
+    delete bad.state.studioLevel;
+    expect(deserialize(JSON.stringify(bad))).toBeNull();
   });
 });

@@ -17,7 +17,7 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{t.title}</h3>
         <p className="sub">
-          {t.key} · {t.type} · {game?.name} · {t.status.replaceAll('_', ' ')}
+          {t.key} · {t.type} · {game?.name ?? 'Studio'} · {t.status.replaceAll('_', ' ')}
         </p>
         {t.type === 'Story' && (
           <p>
@@ -38,6 +38,19 @@ export function TicketModal({ ticketKey, onClose }: { ticketKey: string; onClose
             you'll know when they're done. {/* qaEffort stays hidden — that's the thrill */}
           </p>
         ) : null}
+        {t.type === 'Tech Debt' && (
+          <div className="panel" style={{ margin: '10px 0', padding: 12 }}>
+            <p style={{ margin: '0 0 6px' }}>
+              <strong>If it ships:</strong>{' '}
+              {t.techSubtype === 'investment'
+                ? `+${t.benefitRevenuePct}% revenue on every game you own`
+                : 'clears the compliance deadline (no fine)'}
+            </p>
+            <p style={{ margin: 0 }}>
+              <strong>If it fails:</strong> bounces back for rework + $500. Lower-skill devs hit technical errors more often.
+            </p>
+          </div>
+        )}
         {assignable && (
           <select
             className="assign"

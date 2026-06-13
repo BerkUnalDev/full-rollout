@@ -1,5 +1,6 @@
 // src/ui/screens/TeamScreen.tsx
 import { useDispatch, useGame } from '../store';
+import { memberStats } from '../../engine';
 import { fmtMoney } from '../format';
 
 export function TeamScreen() {
@@ -12,7 +13,7 @@ export function TeamScreen() {
         <h3>Roster</h3>
         <table className="table">
           <thead>
-            <tr><th>Name</th><th>Role</th><th>Skill</th><th className="num">Salary/wk</th><th>Working on</th></tr>
+            <tr><th>Name</th><th>Role</th><th>Skill</th><th>Stats</th><th className="num">Salary/wk</th><th>Working on</th></tr>
           </thead>
           <tbody>
             {s.team.map((m) => (
@@ -20,6 +21,7 @@ export function TeamScreen() {
                 <td>{m.name}</td>
                 <td>{m.role}</td>
                 <td>{'⭐'.repeat(m.skill)}</td>
+                <td className="sub">{memberStats(m.role, m.skill).join(' · ')}</td>
                 <td className="num">{fmtMoney(m.salary)}</td>
                 <td>{m.ticketKey ?? <span className="sub">—</span>}</td>
               </tr>
@@ -31,11 +33,11 @@ export function TeamScreen() {
         <h3>Candidates</h3>
         <p className="sub">Fresh faces every week. Signing fee = 2 weeks of salary.</p>
         {s.market.candidates.map((c) => (
-          <div className="row" key={c.id} style={{ padding: '6px 0' }}>
-            <span>{c.name}</span>
-            <span className="pill">{c.role}</span>
-            <span>{'⭐'.repeat(c.skill)}</span>
-            <span className="sub">{fmtMoney(c.salary)}/wk</span>
+          <div className="row" key={c.id} style={{ padding: '8px 0', alignItems: 'flex-start' }}>
+            <div>
+              <div><strong>{c.name}</strong> <span className="pill">{c.role}</span> {'⭐'.repeat(c.skill)}</div>
+              <div className="sub">{memberStats(c.role, c.skill).join(' · ')} · {fmtMoney(c.salary)}/wk</div>
+            </div>
             <span className="right">
               <button
                 className="btn blue"

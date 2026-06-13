@@ -26,6 +26,7 @@ export function newGame(seed: number = DEFAULT_SEED): GameState {
     weekIndex: 0,
     cash: STARTING_CASH,
     status: 'playing',
+    studioLevel: 1,
     team: [],
     games: [],
     tickets: [],
@@ -38,6 +39,7 @@ export function newGame(seed: number = DEFAULT_SEED): GameState {
     pendingDeltas: [],
     pendingEvents: [],
     lastReport: null,
+    reportHistory: [],
     log: [],
   };
 

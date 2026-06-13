@@ -52,12 +52,6 @@ export const BUG_TITLES = [
   'Fix audio stutter on resume',
 ] as const;
 
-export const SDK_TITLES = [
-  'Mandatory SDK update 4.2',
-  'Privacy SDK compliance update',
-  'Ad mediation SDK upgrade',
-] as const;
-
 export const OPPORTUNITY_BODIES = [
   'The platform wants to feature {game}! Ship a full rollout by {deadline} and player numbers will spike.',
   'A creator collab is lined up for {game}. Get a fresh version fully rolled out by {deadline} to ride the wave.',
@@ -67,4 +61,19 @@ export const NEW_GAME_STORY_TITLES = [
   'Core gameplay loop',
   'First 100 levels',
   'Tutorial & onboarding',
+] as const;
+
+export const TECHDEBT_MANDATORY_TITLES = [
+  'SDK Upgrade 4.2',
+  'Privacy Compliance Update',
+  'Ad Mediation SDK Upgrade',
+  'OS Target API Bump',
+] as const;
+
+export const TECHDEBT_INVESTMENT_TITLES = [
+  'Game Engine v9 Migration',
+  'AI Automation Pipeline',
+  'Build Pipeline Overhaul',
+  'Crash Analytics Revamp',
+  'Live-Ops Tooling Upgrade',
 ] as const;

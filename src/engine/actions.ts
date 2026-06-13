@@ -4,6 +4,7 @@ import { applyFullRollout, applyPullBack, performCut } from './releases';
 import { generateGameName } from './names';
 import { createTicket, effortFor, genId, genStoryConcept, genBugTitle } from './generators';
 import { GENRE_FIT, NEW_GAME_COST, QA_EFFORT_FRACTION } from './constants';
+import { maxGamesFor, nextUpgradeCost } from './studio';
 import { NEW_GAME_STORY_TITLES } from './data';
 import { acceptInboxItem, declineInboxItem } from './inbox';
 import type { GameState, Genre, PlanAction, PortfolioGame, Ticket } from './types';
@@ -116,6 +117,9 @@ handlers.hire = ({ s }, a: { candidateId: string }) => {
 handlers.buyGame = ({ s, rng }, a: { offerId: string }) => {
   const o = s.market.offers.find((x) => x.id === a.offerId);
   if (!o) throw new Error('No such offer');
+  if (s.games.length >= maxGamesFor(s.studioLevel)) {
+    throw new Error('Studio level too low — upgrade to manage more games');
+  }
   if (s.cash < o.price) throw new Error('Not enough cash');
   s.cash -= o.price;
   s.pendingDeltas.push({ label: `Acquired ${o.name}`, amount: -o.price });
@@ -150,6 +154,9 @@ handlers.buyGame = ({ s, rng }, a: { offerId: string }) => {
 };
 
 handlers.startNewGame = ({ s, rng }, a: { genre: Genre }) => {
+  if (s.games.length >= maxGamesFor(s.studioLevel)) {
+    throw new Error('Studio level too low — upgrade to manage more games');
+  }
   if (s.cash < NEW_GAME_COST) throw new Error('Not enough cash');
   s.cash -= NEW_GAME_COST;
   s.pendingDeltas.push({ label: 'New game prototype', amount: -NEW_GAME_COST });
@@ -179,4 +186,15 @@ handlers.acceptInbox = ({ s }, a: { itemId: string }) => {
 
 handlers.declineInbox = ({ s }, a: { itemId: string }) => {
   declineInboxItem(s, a.itemId);
+};
+
+handlers.upgradeStudio = ({ s }) => {
+  const cost = nextUpgradeCost(s.studioLevel);
+  if (cost === null) throw new Error('Studio is already at max level');
+  if (s.cash < cost) throw new Error('Not enough cash to upgrade the studio');
+  s.cash -= cost;
+  s.pendingDeltas.push({ label: `Studio upgrade → Lv ${s.studioLevel + 1}`, amount: -cost });
+  s.studioLevel += 1;
+  s.pendingEvents.push(`🏢 Studio upgraded to Level ${s.studioLevel} — up to ${maxGamesFor(s.studioLevel)} games`);
+  s.log.push(`Studio reached Level ${s.studioLevel}`);
 };

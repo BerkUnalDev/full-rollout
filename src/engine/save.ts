@@ -14,7 +14,10 @@ export function deserialize(json: string): GameState | null {
     const parsed = JSON.parse(json) as { v?: number; state?: GameState };
     if (!parsed || parsed.v !== SCHEMA_VERSION || !parsed.state) return null;
     const st = parsed.state;
-    if (typeof st.weekIndex !== 'number' || !Array.isArray(st.tickets)) return null;
+    if (
+      typeof st.weekIndex !== 'number' || !Array.isArray(st.tickets) ||
+      typeof st.studioLevel !== 'number' || !Array.isArray(st.reportHistory)
+    ) return null;
     return st;
   } catch {
     return null;

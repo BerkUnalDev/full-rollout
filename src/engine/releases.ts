@@ -34,9 +34,11 @@ export function canCutRelease(
   }
   const included = qaCompleteFor(s, gameId);
   if (included.length === 0) return { ok: false, reason: 'No QA-complete tickets for this game' };
-  const rmCount = s.team.filter((m) => m.role === 'Release Manager').length;
+  const rmCapacity = s.team
+    .filter((m) => m.role === 'Release Manager')
+    .reduce((a, m) => a + m.skill, 0);
   const cutting = s.releases.filter((r) => r.status === 'cutting').length;
-  if (cutting >= rmCount) return { ok: false, reason: 'All release managers are busy this week' };
+  if (cutting >= rmCapacity) return { ok: false, reason: 'Release managers are at capacity this week' };
   return { ok: true, nextVersion: computeNextVersion(game, included) };
 }
 

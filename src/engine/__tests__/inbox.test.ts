@@ -4,7 +4,9 @@ import { newGame } from '../newGame';
 import { applyAction } from '../actions';
 import { checkDeadlines, generateWeeklyInbox } from '../inbox';
 import { generateInboxItem } from '../inbox';
-import { SDK_FINE } from '../constants';
+import { TECHDEBT_FINE } from '../constants';
+
+const SDK_FINE_EXPECTED = TECHDEBT_FINE;
 import { makeState } from './helpers';
 
 describe('accept / decline', () => {
@@ -43,31 +45,32 @@ describe('accept / decline', () => {
 });
 
 describe('deadlines', () => {
-  it('fines a declined SDK item once when the deadline passes', () => {
+  it('fines a declined mandatory tech-debt item once when the deadline passes', () => {
     const s = makeState();
-    const item = generateInboxItem(s, new Rng(1), 'sdk');
+    const item = generateInboxItem(s, new Rng(1), 'techdebt', undefined, 'mandatory');
     s.inbox.push(item);
     const s2 = applyAction(s, { type: 'declineInbox', itemId: item.id });
     s2.weekIndex = item.deadlineWeek! + 1;
     const cash = s2.cash;
     checkDeadlines(s2);
-    expect(s2.cash).toBe(cash - SDK_FINE);
+    expect(s2.cash).toBe(cash - SDK_FINE_EXPECTED);
     checkDeadlines(s2); // no double fine
-    expect(s2.cash).toBe(cash - SDK_FINE);
+    expect(s2.cash).toBe(cash - SDK_FINE_EXPECTED);
   });
 
-  it('fines an accepted-but-unfinished SDK task at the deadline', () => {
+  it('fines an accepted-but-unfinished mandatory tech-debt ticket at the deadline', () => {
     const s = makeState();
-    const item = generateInboxItem(s, new Rng(2), 'sdk');
+    const item = generateInboxItem(s, new Rng(2), 'techdebt', undefined, 'mandatory');
+    item.requiredLevel = 1;
     s.inbox.push(item);
     const s2 = applyAction(s, { type: 'acceptInbox', itemId: item.id });
-    const task = s2.tickets.find((t) => t.type === 'Task')!;
+    const task = s2.tickets.find((t) => t.type === 'Tech Debt')!;
     expect(task.deadlineWeek).toBe(item.deadlineWeek);
     s2.weekIndex = item.deadlineWeek! + 1;
     const cash = s2.cash;
     checkDeadlines(s2);
-    expect(s2.cash).toBe(cash - SDK_FINE);
-    expect(s2.tickets.find((t) => t.type === 'Task')!.deadlineWeek).toBeNull();
+    expect(s2.cash).toBe(cash - SDK_FINE_EXPECTED);
+    expect(s2.tickets.find((t) => t.type === 'Tech Debt')!.deadlineWeek).toBeNull();
   });
 
   it('expires stale opportunities', () => {

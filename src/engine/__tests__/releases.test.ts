@@ -3,7 +3,7 @@ import { newGame } from '../newGame';
 import { applyAction } from '../actions';
 import { arriveReports, canCutRelease, computeNextVersion, shipCuttingReleases } from '../releases';
 import { Rng } from '../rng';
-import { makeState, addTicket } from './helpers';
+import { makeState, addMember, addTicket } from './helpers';
 import { NEW_GAME_SEED_PER_QUALITY } from '../constants';
 import type { GameState, Release } from '../types';
 
@@ -51,7 +51,9 @@ describe('canCutRelease / cutRelease', () => {
   });
 
   it('enforces RM capacity and one in-flight release per game', () => {
-    const s = makeState(); // 1 RM
+    const s = makeState();
+    s.team = s.team.filter((m) => m.role !== 'Release Manager');
+    addMember(s, 'Release Manager', 1); // skill-1 RM → capacity 1
     const [g1, g2] = s.games;
     withQaComplete(s, g1.id);
     withQaComplete(s, g2.id);

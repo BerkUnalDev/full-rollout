@@ -1,10 +1,11 @@
 // src/ui/components/WeeklyReportModal.tsx
 import { useGame } from '../store';
 import { fmtMoney } from '../format';
+import type { WeeklyReport } from '../../engine';
 
-export function WeeklyReportModal({ onClose }: { onClose: () => void }) {
+export function WeeklyReportModal({ report, onClose }: { report?: WeeklyReport; onClose: () => void }) {
   const s = useGame();
-  const r = s.lastReport;
+  const r = report ?? s.lastReport;
   if (!r) return null;
   const net = r.cashEnd - r.cashStart;
   return (
@@ -31,7 +32,7 @@ export function WeeklyReportModal({ onClose }: { onClose: () => void }) {
           </ul>
         )}
         <div className="foot">
-          <button className="btn blue" onClick={onClose}>Continue</button>
+          <button className="btn blue" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
