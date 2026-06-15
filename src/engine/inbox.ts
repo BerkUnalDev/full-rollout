@@ -2,7 +2,8 @@
 import { Rng } from './rng';
 import {
   DECLINED_BUG_RATING_HIT, FEATURE_ACCESSIBLE_CHANCE, FEATURE_CAP_PER_GAME,
-  FEATURING_ACCEPT_COST, FEATURING_DEADLINE_WEEKS, FEATURING_REWARD_PCT, GENRE_FIT,
+  FEATURING_ACCEPT_COST, FEATURING_DEADLINE_WEEKS, FEATURING_REWARD_MAX,
+  FEATURING_REWARD_MIN, FEATURING_REWARD_SKEW, GENRE_FIT,
   INBOX_EXTRA_MAX, INBOX_GAMES_PER_EXTRA, INBOX_PER_WEEK,
   TECHDEBT_ACCESSIBLE_CHANCE, TECHDEBT_DEADLINE_WEEKS, TECHDEBT_EFFORT,
   TECHDEBT_FINE, TECHDEBT_REFILL_CHANCE, TECH_INVEST_REVENUE_PCT,
@@ -81,12 +82,16 @@ export function generateInboxItem(
   if (kind === 'opportunity') {
     const deadlineWeek = s.weekIndex + rng.int(FEATURING_DEADLINE_WEEKS[0], FEATURING_DEADLINE_WEEKS[1]);
     const acceptCost = Math.round(FEATURING_ACCEPT_COST * economyScale(s));
+    // low-skewed reward: most offers are small, a big spike is rare
+    const span = FEATURING_REWARD_MAX - FEATURING_REWARD_MIN;
+    const rewardPlayersPct =
+      Math.round((FEATURING_REWARD_MIN + span * Math.pow(rng.next(), FEATURING_REWARD_SKEW)) * 100) / 100;
     const body = rng.pick(OPPORTUNITY_BODIES)
       .replace('{game}', game!.name)
       .replace('{deadline}', cwLabel(deadlineWeek));
     return {
       ...base, kind, title: `Featuring opportunity: ${game!.name}`,
-      body, deadlineWeek, rewardPlayersPct: FEATURING_REWARD_PCT, acceptCost,
+      body, deadlineWeek, rewardPlayersPct, acceptCost,
     };
   }
   // techdebt (studio-wide; replaces the old per-game SDK task)
