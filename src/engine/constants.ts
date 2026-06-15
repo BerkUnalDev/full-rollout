@@ -62,7 +62,11 @@ export const SALARY_BY_SKILL: Record<Role, readonly number[]> = {
 export const INBOX_PER_WEEK: readonly [number, number] = [1, 3];
 export const INBOX_GAMES_PER_EXTRA = 3; // +1 weekly inbox item per N games owned
 export const INBOX_EXTRA_MAX = 8; // cap the portfolio-size bonus items
-export const FEATURING_REWARD_PCT = 0.25;
+// Featuring reward: a low-skewed roll in [MIN, MAX]. rng.next()^SKEW pushes most
+// outcomes toward MIN; the top (~25%) lands only ~5% of the time.
+export const FEATURING_REWARD_MIN = 0.05;
+export const FEATURING_REWARD_MAX = 0.25;
+export const FEATURING_REWARD_SKEW = 3;
 export const FEATURING_DEADLINE_WEEKS: readonly [number, number] = [5, 8];
 export const DECLINED_BUG_RATING_HIT = 0.08; // × (declinedBugs so far + 1)
 
